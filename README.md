@@ -1,61 +1,360 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📚 YAKIIN Teacher Payment System
+
+> Sistem Informasi Pengelolaan Absensi dan Penggajian Guru untuk Yayasan YAKIIN
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
+  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/Bootstrap-5.1-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap">
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
 </p>
 
-## About Laravel
+## 🎯 Tentang Proyek
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancang khusus untuk mengelola absensi dan penggajian guru di Yayasan YAKIIN. Sistem ini menggunakan teknologi kamera web untuk absensi mandiri guru dan menyediakan dashboard yang berbeda sesuai dengan peran pengguna.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### ✨ Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+#### 🔐 **Sistem Keamanan & Authentication**
+- ✅ Role-based access control (Admin, Bendahara, Guru)
+- ✅ Middleware proteksi route berdasarkan role
+- ✅ Enkripsi password dengan bcrypt
+- ✅ Session management yang aman
+- ✅ SQL Injection protection (Laravel ORM)
+- ✅ CSRF Protection
 
-## Learning Laravel
+#### 👥 **Manajemen Pengguna**
+- ✅ **Admin:** Mengelola semua data guru, absensi, dan gaji
+- ✅ **Bendahara:** Melihat data guru, absensi, dan mengelola gaji
+- ✅ **Guru:** Melihat data pribadi, absensi, dan gaji mereka sendiri
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+#### 📊 **Dashboard Interaktif**
+- ✅ Dashboard khusus Admin/Bendahara dengan statistik lengkap
+- ✅ Dashboard khusus Guru dengan informasi personal
+- ✅ Ringkasan data absensi dan gaji real-time
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+#### 👨‍🏫 **Manajemen Data Guru**
+- ✅ CRUD lengkap untuk data guru (hanya Admin)
+- ✅ Data lengkap: NIP, nama, alamat, mata pelajaran, gaji pokok
+- ✅ Soft delete (nonaktifkan guru)
+- ✅ Validasi data yang komprehensif
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### 📅 **Manajemen Absensi**
+- ✅ Input absensi guru (Admin/Bendahara)
+- ✅ Status absensi: Hadir, Tidak Hadir, Terlambat, Izin, Sakit
+- ✅ Filter berdasarkan guru, bulan, dan tahun
+- ✅ Guru hanya bisa melihat absensi sendiri
 
-## Laravel Sponsors
+#### 📸 **Absensi Mandiri dengan Kamera** (Fitur Unggulan)
+- ✅ Akses kamera web untuk absensi real-time
+- ✅ Absen masuk & keluar dengan foto bukti
+- ✅ Deteksi lokasi GPS otomatis
+- ✅ Status otomatis (Hadir/Terlambat berdasarkan jam)
+- ✅ Validasi waktu dan urutan absensi
+- ✅ Mobile-responsive untuk smartphone
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+#### 💰 **Manajemen Gaji**
+- ✅ Generate gaji otomatis berdasarkan absensi
+- ✅ Perhitungan: Gaji Pokok + Tunjangan + Bonus - Potongan
+- ✅ Status gaji: Draft, Approved, Paid
+- ✅ Filter dan pencarian data gaji
+- ✅ Laporan gaji detail
 
-### Premium Partners
+## 🚀 Instalasi dan Setup
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Prasyarat
+- PHP 8.2 atau lebih tinggi
+- Composer
+- Node.js & NPM (opsional untuk development)
+- Web server (Apache/Nginx) atau bisa menggunakan PHP built-in server
 
-## Contributing
+### Langkah Instalasi
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **Clone Repository**
+   ```bash
+   git clone <repository-url>
+   cd teacher-payment-system
+   ```
 
-## Code of Conduct
+2. **Install Dependencies**
+   ```bash
+   composer install
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. **Setup Environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Security Vulnerabilities
+4. **Setup Database**
+   ```bash
+   # Database sudah menggunakan SQLite (database/database.sqlite)
+   php artisan migrate
+   php artisan db:seed
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+5. **Setup Storage**
+   ```bash
+   php artisan storage:link
+   ```
 
-## License
+6. **Jalankan Server**
+   ```bash
+   php artisan serve
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+7. **Akses Aplikasi**
+   Buka browser dan akses: `http://127.0.0.1:8000`
+
+## 👤 Akun Default
+
+| Role | Email | Password | Akses |
+|------|-------|----------|--------|
+| **Admin** | admin@yakiin.sch.id | admin123 | Full access (CRUD semua data) |
+| **Bendahara** | bendahara@yakiin.sch.id | bendahara123 | View data guru, manage gaji |
+| **Guru** | guru@yakiin.sch.id | guru123 | View data pribadi, absensi mandiri |
+
+## 🎮 Cara Menggunakan
+
+### Untuk Guru:
+1. **Login** dengan akun guru
+2. **Dashboard:** Lihat ringkasan absensi dan gaji
+3. **Absensi Mandiri:** 
+   - Klik menu "Absensi Mandiri"
+   - Izinkan akses kamera
+   - Klik "Absen Masuk" (pagi) atau "Absen Keluar" (sore)
+   - Foto akan tersimpan otomatis
+4. **Lihat Data:** Akses data absensi dan gaji pribadi
+
+### Untuk Admin/Bendahara:
+1. **Login** dengan akun admin/bendahara
+2. **Dashboard:** Lihat statistik keseluruhan
+3. **Kelola Guru:** Tambah, edit, lihat data guru (Admin only)
+4. **Kelola Absensi:** Input manual absensi guru
+5. **Kelola Gaji:** Generate dan manage gaji guru
+6. **Lihat Foto Absensi:** Verifikasi foto absensi di detail attendance
+
+## 🏗️ Struktur Database
+
+### Tabel Utama:
+- **users:** Data pengguna dan role
+- **teachers:** Data detail guru
+- **attendances:** Data absensi dengan foto dan lokasi
+- **salaries:** Data gaji dan perhitungan
+
+### Relasi:
+- User hasOne Teacher
+- Teacher hasMany Attendances
+- Teacher hasMany Salaries
+
+## 🔧 Teknologi yang Digunakan
+
+### Backend:
+- **Laravel 12:** Framework PHP modern
+- **SQLite:** Database ringan dan portable
+- **Laravel ORM:** Object-Relational Mapping
+- **Laravel Middleware:** Route protection
+- **Laravel Storage:** File management
+
+### Frontend:
+- **Bootstrap 5:** CSS framework responsive
+- **FontAwesome 6:** Icon library
+- **JavaScript (Vanilla):** Camera API dan AJAX
+- **Blade Templates:** Laravel templating engine
+
+### Fitur Browser:
+- **MediaDevices API:** Akses kamera web
+- **Geolocation API:** Deteksi lokasi GPS
+- **Canvas API:** Capture dan manipulasi gambar
+- **Local Storage:** Menyimpan preferensi user
+
+## 📱 Fitur Mobile-Friendly
+
+- ✅ Responsive design untuk semua ukuran layar
+- ✅ Touch-friendly interface
+- ✅ Akses kamera depan smartphone
+- ✅ Geolocation support
+- ✅ Optimized untuk penggunaan mobile
+
+## 🔒 Keamanan
+
+### Implementasi Keamanan:
+- **Password Hashing:** Bcrypt encryption
+- **CSRF Protection:** Token validation
+- **SQL Injection Prevention:** Laravel ORM
+- **XSS Protection:** Blade templating
+- **Role-based Access Control:** Custom middleware
+- **Session Security:** Secure session management
+
+### Validasi Data:
+- Server-side validation
+- Client-side validation
+- File upload validation
+- Image format validation
+
+## 📊 Fitur Pelaporan
+
+- **Dashboard Statistics:** Real-time data overview
+- **Attendance Reports:** Filter by date, teacher, status
+- **Salary Reports:** Monthly salary calculations
+- **Photo Verification:** Visual attendance proof
+- **Location Tracking:** GPS coordinates logging
+
+## 🛠️ Development
+
+### Untuk Developer:
+
+1. **Setup Development Environment**
+   ```bash
+   composer install --dev
+   php artisan migrate:fresh --seed
+   ```
+
+2. **Run Tests** (jika tersedia)
+   ```bash
+   php artisan test
+   ```
+
+3. **Code Style**
+   - Mengikuti PSR-12 standard
+   - Laravel best practices
+   - Clean code principles
+
+## 📄 Lisensi
+
+Proyek ini dikembangkan untuk Yayasan YAKIIN. Semua hak cipta dilindungi.
+
+## 🚨 Troubleshooting
+
+### Masalah Umum dan Solusi
+
+#### **Kamera tidak dapat diakses**
+```bash
+# Pastikan browser mengizinkan akses kamera
+# Chrome: Settings → Privacy and Security → Site Settings → Camera
+# Firefox: Preferences → Privacy & Security → Permissions → Camera
+# Safari: Preferences → Websites → Camera
+```
+
+#### **Foto absensi tidak tersimpan**
+```bash
+# Periksa permission storage
+sudo chmod -R 755 storage/
+sudo chmod -R 755 bootstrap/cache/
+
+# Link storage ke public
+php artisan storage:link
+
+# Clear cache
+php artisan cache:clear
+php artisan config:clear
+```
+
+#### **Database error saat migration**
+```bash
+# Hapus database dan buat ulang
+rm database/database.sqlite
+touch database/database.sqlite
+php artisan migrate:fresh --seed
+```
+
+#### **Session expired atau login gagal**
+```bash
+# Generate new application key
+php artisan key:generate
+
+# Clear semua cache
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+```
+
+#### **Gambar tidak muncul di detail absensi**
+```bash
+# Pastikan storage link sudah dibuat
+php artisan storage:link
+
+# Periksa permission
+sudo chown -R www-data:www-data storage/
+sudo chmod -R 755 storage/
+```
+
+## 🔧 Konfigurasi Advanced
+
+### Setup untuk Production
+
+1. **Environment Production**
+   ```bash
+   # Update .env untuk production
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://yourdomain.com
+   ```
+
+2. **Optimize untuk Performance**
+   ```bash
+   composer install --optimize-autoloader --no-dev
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
+
+3. **Setup HTTPS (Recommended)**
+   - Gunakan SSL certificate
+   - Update APP_URL ke https://
+   - Kamera web memerlukan HTTPS untuk production
+
+### Database Backup
+```bash
+# Backup SQLite database
+cp database/database.sqlite backup/database_$(date +%Y%m%d).sqlite
+
+# Backup dengan data
+php artisan db:dump --gzip
+```
+
+## 📊 Monitoring dan Logs
+
+### Lokasi Log File
+```bash
+# Application logs
+storage/logs/laravel.log
+
+# Web server logs (tergantung server)
+/var/log/apache2/access.log
+/var/log/nginx/access.log
+```
+
+### Debug Mode
+```bash
+# Enable debug (hanya untuk development)
+APP_DEBUG=true
+
+# Disable debug (untuk production)
+APP_DEBUG=false
+```
+
+## 📄 Lisensi
+
+Proyek ini dikembangkan untuk Yayasan YAKIIN. Semua hak cipta dilindungi.
+
+## 🤝 Kontributor
+
+- **Developer:** Ahmad Nathan Firdaus
+- **Client:** Yayasan YAKIIN
+- **Framework:** Laravel Team
+
+## 📞 Support
+
+Untuk bantuan teknis atau pertanyaan, silakan hubungi:
+- **Email:** [contact@yakiin.sch.id]
+- **Developer:** [your-email@domain.com]
+
+---
+
+<p align="center">
+  <strong>🎓 Dibuat dengan ❤️ untuk Yayasan YAKIIN</strong><br>
+  <em>Memudahkan pengelolaan absensi dan penggajian guru dengan teknologi modern</em>
+</p>
