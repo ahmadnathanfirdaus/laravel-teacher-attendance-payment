@@ -118,15 +118,21 @@
     </div>
 </div>
 
-<!-- Loading Modal -->
-<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-body text-center py-4">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mb-0">Memproses absensi...</p>
+            <div class="modal-header" id="resultModalHeader">
+                <h5 class="modal-title" id="resultModalTitle">Status Absensi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4" id="resultModalBody">
+                <div id="resultIcon" class="mb-3"></div>
+                <p id="resultMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary" id="refreshBtn" onclick="window.location.reload()" style="display: none;">Refresh Halaman</button>
             </div>
         </div>
     </div>
@@ -138,8 +144,17 @@
 <script>
 let video, canvas, context;
 let currentLocation = null;
+let resultModal = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Inisialisasi result modal
+    try {
+        resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+        console.log('Result modal initialized successfully');
+    } catch (error) {
+        console.error('Error initializing result modal:', error);
+    }
+
     video = document.getElementById('video');
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
@@ -212,9 +227,23 @@ function updateCurrentTime() {
 }
 
 function takeAttendance(type) {
-    // Show loading modal
-    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
-    loadingModal.show();
+    console.log('Starting attendance process for:', type);
+
+    // Disable buttons to prevent double submission
+    const clockInBtn = document.getElementById('clock-in-btn');
+    const clockOutBtn = document.getElementById('clock-out-btn');
+    const originalClockInHTML = clockInBtn.innerHTML;
+    const originalClockOutHTML = clockOutBtn.innerHTML;
+
+    clockInBtn.disabled = true;
+    clockOutBtn.disabled = true;
+
+    // Change button text to show processing
+    if (type === 'masuk') {
+        clockInBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+    } else {
+        clockOutBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Memproses...';
+    }
 
     // Capture photo
     context.drawImage(video, 0, 0, 400, 300);
@@ -239,48 +268,71 @@ function takeAttendance(type) {
     })
     .then(response => response.json())
     .then(data => {
-        loadingModal.hide();
+        console.log('Response received:', data);
 
         if (data.success) {
-            // Show success message
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                ${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-
-            document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
-
-            // Refresh page after 2 seconds
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            console.log('Success response');
+            showResultModal('success', 'Absensi Berhasil!', data.message, true);
         } else {
-            // Show error message
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                ${data.error || 'Terjadi kesalahan'}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+            console.log('Error response:', data.error);
+            showResultModal('error', 'Absensi Gagal!', data.error || 'Terjadi kesalahan', false);
 
-            document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
+            // Re-enable buttons and restore original text only on error
+            clockInBtn.disabled = false;
+            clockOutBtn.disabled = false;
+            clockInBtn.innerHTML = originalClockInHTML;
+            clockOutBtn.innerHTML = originalClockOutHTML;
         }
     })
     .catch(error => {
-        loadingModal.hide();
-        console.error('Error:', error);
+        console.log('Fetch error occurred:', error);
+        showResultModal('error', 'Absensi Gagal!', 'Terjadi kesalahan saat memproses absensi. Silakan coba lagi.', false);
 
-        const alertDiv = document.createElement('div');
-        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-        alertDiv.innerHTML = `
-            Terjadi kesalahan saat memproses absensi
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-
-        document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.row'));
+        // Re-enable buttons and restore original text only on error
+        clockInBtn.disabled = false;
+        clockOutBtn.disabled = false;
+        clockInBtn.innerHTML = originalClockInHTML;
+        clockOutBtn.innerHTML = originalClockOutHTML;
     });
+}
+
+function showResultModal(type, title, message, shouldRefresh = false) {
+    console.log('Showing result modal:', type, title, message);
+
+    const modalHeader = document.getElementById('resultModalHeader');
+    const modalTitle = document.getElementById('resultModalTitle');
+    const resultIcon = document.getElementById('resultIcon');
+    const resultMessage = document.getElementById('resultMessage');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    // Set title
+    modalTitle.textContent = title;
+
+    // Set icon and colors based on type
+    if (type === 'success') {
+        modalHeader.className = 'modal-header bg-success text-white';
+        resultIcon.innerHTML = '<i class="fas fa-check-circle fa-4x text-success"></i>';
+        refreshBtn.style.display = shouldRefresh ? 'inline-block' : 'none';
+    } else {
+        modalHeader.className = 'modal-header bg-danger text-white';
+        resultIcon.innerHTML = '<i class="fas fa-times-circle fa-4x text-danger"></i>';
+        refreshBtn.style.display = 'none';
+    }
+
+    // Set message
+    resultMessage.textContent = message;
+
+    // Show modal
+    if (resultModal) {
+        resultModal.show();
+    }
+
+    // Auto refresh for success after 3 seconds
+    if (shouldRefresh && type === 'success') {
+        setTimeout(() => {
+            window.location.reload();
+        }, 3000);
+    }
 }
 </script>
 @endpush
