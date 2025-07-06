@@ -56,9 +56,11 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 #### 💰 **Manajemen Gaji**
 - ✅ Generate gaji otomatis berdasarkan absensi
 - ✅ Perhitungan: Gaji Pokok + Tunjangan + Bonus - Potongan
-- ✅ Status gaji: Draft, Approved, Paid
+- ✅ **Workflow Status Gaji:** Draft → Approved → Paid
+- ✅ Live preview perhitungan gaji saat edit
 - ✅ Filter dan pencarian data gaji
-- ✅ Laporan gaji detail
+- ✅ Laporan gaji detail per guru/periode
+- ✅ Kontrol approval dan audit trail
 
 ## 🚀 Instalasi dan Setup
 
@@ -216,7 +218,45 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 - File upload validation
 - Image format validation
 
-## 📊 Fitur Pelaporan
+## � Workflow Penggajian
+
+### Status Gaji dan Alur Kerja:
+
+#### 1. **DRAFT** (Default setelah generate)
+- ✅ Gaji baru digenerate dari sistem
+- ✅ Perhitungan otomatis berdasarkan absensi
+- ✅ Admin bisa edit bonus, potongan, keterangan
+- ❌ Belum bisa dibayarkan
+
+#### 2. **APPROVED** (Setelah verifikasi)
+- ✅ Gaji sudah diverifikasi dan disetujui
+- ✅ Siap untuk proses pembayaran
+- ✅ Masih bisa diedit jika ada koreksi
+- ❌ Tidak bisa dihapus
+
+#### 3. **PAID** (Setelah pembayaran real)
+- ✅ Gaji sudah benar-benar dibayarkan
+- ✅ Status final (read-only)
+- ❌ Tidak bisa diubah lagi
+
+### Mengapa Status Default "Draft"?
+
+**Alasan Bisnis:**
+- 🛡️ **Kontrol Kualitas:** Verifikasi sebelum pembayaran
+- 📋 **Validasi Data:** Memastikan perhitungan akurat
+- ✅ **Proses Approval:** Jejak persetujuan yang jelas
+- 🔍 **Audit Trail:** Riwayat perubahan status
+
+**Cara Menggunakan:**
+1. **Generate Gaji** → Status: DRAFT
+2. **Review & Edit** → Verifikasi semua komponen
+3. **Update ke APPROVED** → Setelah validasi
+4. **Lakukan Pembayaran** → Transfer/cash ke guru
+5. **Update ke PAID** → Konfirmasi pembayaran
+
+> 📖 **Detail lengkap:** Lihat file `SALARY_WORKFLOW.md` untuk panduan step-by-step
+
+## �📊 Fitur Pelaporan
 
 - **Dashboard Statistics:** Real-time data overview
 - **Attendance Reports:** Filter by date, teacher, status
@@ -464,6 +504,12 @@ APP_DEBUG=true
 # Disable debug (untuk production)
 APP_DEBUG=false
 ```
+
+## 📄 Dokumentasi
+
+### File Dokumentasi Tambahan:
+- 📊 **[SALARY_WORKFLOW.md](SALARY_WORKFLOW.md)** - Panduan lengkap workflow penggajian
+- 🤝 **[CONTRIBUTING.md](CONTRIBUTING.md)** - Panduan kontribusi dan development
 
 ## 📄 Lisensi
 
