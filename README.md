@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
   <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP">
   <img src="https://img.shields.io/badge/Bootstrap-5.1-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap">
-  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
 </p>
 
 ## 🎯 Tentang Proyek
@@ -65,6 +65,7 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 ### Prasyarat
 - PHP 8.2 atau lebih tinggi
 - Composer
+- MySQL 5.7+ atau MariaDB 10.3+
 - Node.js & NPM (opsional untuk development)
 - Web server (Apache/Nginx) atau bisa menggunakan PHP built-in server
 
@@ -87,24 +88,40 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
    php artisan key:generate
    ```
 
-4. **Setup Database**
+4. **Konfigurasi Database**
    ```bash
-   # Database sudah menggunakan SQLite (database/database.sqlite)
+   # Edit file .env untuk konfigurasi MySQL
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=yakiin_teacher_payment
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   ```
+
+5. **Setup Database**
+   ```bash
+   # Buat database MySQL terlebih dahulu
+   mysql -u root -p
+   CREATE DATABASE yakiin_teacher_payment CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   EXIT;
+   
+   # Jalankan migration dan seeder
    php artisan migrate
    php artisan db:seed
    ```
 
-5. **Setup Storage**
+6. **Setup Storage**
    ```bash
    php artisan storage:link
    ```
 
-6. **Jalankan Server**
+7. **Jalankan Server**
    ```bash
    php artisan serve
    ```
 
-7. **Akses Aplikasi**
+8. **Akses Aplikasi**
    Buka browser dan akses: `http://127.0.0.1:8000`
 
 ## 👤 Akun Default
@@ -137,6 +154,12 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 
 ## 🏗️ Struktur Database
 
+### Database Requirements:
+- **MySQL:** 5.7+ atau MariaDB 10.3+
+- **Character Set:** utf8mb4 (untuk emoji dan international characters)
+- **Collation:** utf8mb4_unicode_ci
+- **Engine:** InnoDB (default)
+
 ### Tabel Utama:
 - **users:** Data pengguna dan role
 - **teachers:** Data detail guru
@@ -152,7 +175,7 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 
 ### Backend:
 - **Laravel 12:** Framework PHP modern
-- **SQLite:** Database ringan dan portable
+- **MySQL:** Database untuk data guru, absensi, dan gaji
 - **Laravel ORM:** Object-Relational Mapping
 - **Laravel Middleware:** Route protection
 - **Laravel Storage:** File management
@@ -208,6 +231,15 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 1. **Setup Development Environment**
    ```bash
    composer install --dev
+   
+   # Setup database untuk development
+   mysql -u root -p
+   CREATE DATABASE yakiin_teacher_payment_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   EXIT;
+   
+   # Update .env untuk development
+   DB_DATABASE=yakiin_teacher_payment_dev
+   
    php artisan migrate:fresh --seed
    ```
 
@@ -253,9 +285,12 @@ php artisan config:clear
 
 #### **Database error saat migration**
 ```bash
-# Hapus database dan buat ulang
-rm database/database.sqlite
-touch database/database.sqlite
+# Reset database MySQL
+php artisan migrate:fresh --seed
+
+# Atau jika ada masalah dengan database
+DROP DATABASE IF EXISTS yakiin_teacher_payment;
+CREATE DATABASE yakiin_teacher_payment CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 php artisan migrate:fresh --seed
 ```
 
@@ -271,6 +306,48 @@ php artisan route:clear
 php artisan view:clear
 ```
 
+#### **MySQL connection error**
+```bash
+# Periksa status MySQL service
+# Ubuntu/Debian:
+sudo systemctl status mysql
+sudo systemctl start mysql
+
+# Windows (XAMPP):
+# Start MySQL dari XAMPP Control Panel
+
+# MacOS (Homebrew):
+brew services start mysql
+
+# Test koneksi MySQL
+mysql -u username -p -e "SELECT VERSION();"
+```
+
+#### **Permission denied untuk MySQL**
+```bash
+# Reset password MySQL root (jika lupa)
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'new_password';
+FLUSH PRIVILEGES;
+EXIT;
+
+# Atau untuk MySQL 8.0+
+sudo mysql -u root
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+#### **Character set/encoding issues**
+```sql
+-- Pastikan database menggunakan utf8mb4
+ALTER DATABASE yakiin_teacher_payment CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Periksa character set
+SHOW VARIABLES LIKE 'character_set%';
+SHOW VARIABLES LIKE 'collation%';
+```
+
 #### **Gambar tidak muncul di detail absensi**
 ```bash
 # Pastikan storage link sudah dibuat
@@ -282,6 +359,44 @@ sudo chmod -R 755 storage/
 ```
 
 ## 🔧 Konfigurasi Advanced
+
+### Konfigurasi MySQL
+
+#### **Setup MySQL User dan Database**
+```sql
+-- Login sebagai root
+mysql -u root -p
+
+-- Buat database
+CREATE DATABASE yakiin_teacher_payment CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Buat user khusus (opsional, untuk keamanan)
+CREATE USER 'yakiin_user'@'localhost' IDENTIFIED BY 'secure_password';
+GRANT ALL PRIVILEGES ON yakiin_teacher_payment.* TO 'yakiin_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+#### **Konfigurasi .env untuk MySQL**
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=yakiin_teacher_payment
+DB_USERNAME=yakiin_user
+DB_PASSWORD=secure_password
+```
+
+#### **Optimasi MySQL untuk Performance**
+```sql
+-- Setting yang disarankan untuk my.cnf atau my.ini
+[mysqld]
+innodb_buffer_pool_size = 256M
+innodb_log_file_size = 64M
+innodb_flush_log_at_trx_commit = 2
+query_cache_size = 32M
+query_cache_type = 1
+```
 
 ### Setup untuk Production
 
@@ -308,11 +423,14 @@ sudo chmod -R 755 storage/
 
 ### Database Backup
 ```bash
-# Backup SQLite database
-cp database/database.sqlite backup/database_$(date +%Y%m%d).sqlite
+# Backup MySQL database
+mysqldump -u username -p yakiin_teacher_payment > backup/database_$(date +%Y%m%d).sql
 
-# Backup dengan data
-php artisan db:dump --gzip
+# Backup dengan compression
+mysqldump -u username -p yakiin_teacher_payment | gzip > backup/database_$(date +%Y%m%d).sql.gz
+
+# Restore backup
+mysql -u username -p yakiin_teacher_payment < backup/database_backup.sql
 ```
 
 ## 📊 Monitoring dan Logs
@@ -321,6 +439,17 @@ php artisan db:dump --gzip
 ```bash
 # Application logs
 storage/logs/laravel.log
+
+# MySQL logs (tergantung sistem)
+# Ubuntu/Debian:
+/var/log/mysql/error.log
+/var/log/mysql/mysql.log
+
+# Windows (XAMPP):
+xampp/mysql/data/mysql_error.log
+
+# MacOS (Homebrew):
+/opt/homebrew/var/log/mysql/error.log
 
 # Web server logs (tergantung server)
 /var/log/apache2/access.log

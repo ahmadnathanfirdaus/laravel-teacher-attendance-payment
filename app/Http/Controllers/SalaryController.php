@@ -7,6 +7,7 @@ use App\Models\Teacher;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class SalaryController extends Controller
 {
@@ -84,7 +85,12 @@ class SalaryController extends Controller
         $teacher = Teacher::findOrFail($validated['teacher_id']);
 
         // Hitung hari kerja dan hari hadir berdasarkan absensi
-        $startDate = now()->year($validated['tahun'])->month(date('m', strtotime($validated['bulan'])))->startOfMonth();
+        // Parse bulan dari string ke number (contoh: "Januari" -> 1, "01" -> 1)
+        $monthNumber = is_numeric($validated['bulan'])
+            ? (int) $validated['bulan']
+            : (int) date('m', strtotime($validated['bulan']));
+
+        $startDate = Carbon::create($validated['tahun'], $monthNumber, 1);
         $endDate = $startDate->copy()->endOfMonth();
 
         $hariKerja = $this->calculateWorkingDays($startDate, $endDate);
