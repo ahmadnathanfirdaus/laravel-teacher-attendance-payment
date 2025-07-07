@@ -46,7 +46,6 @@ class UserSeeder extends Seeder
         Teacher::create([
             'user_id' => $guruUser->id,
             'nip' => '12345678901234567',
-            'nama_lengkap' => 'Muhaimin Iskandar, S.Pd',
             'alamat' => 'Jl. Kemerdekaan No. 10, Jakarta',
             'no_telepon' => '081234567890',
             'jenis_kelamin' => 'laki-laki',
