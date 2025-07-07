@@ -225,29 +225,13 @@
                             </div>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="photo" class="form-label">Foto Profil</label>
                                 <input type="file" class="form-control @error('photo') is-invalid @enderror"
                                        id="photo" name="photo" accept="image/jpeg,image/png,image/jpg">
                                 <small class="text-muted">Format: JPG, PNG. Maksimal 2MB</small>
                                 @error('photo')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="shifts" class="form-label">Shift Mengajar</label>
-                                <select class="form-control select2 @error('shifts') is-invalid @enderror" id="shifts" name="shifts[]" multiple>
-                                    @foreach(\App\Models\Shift::active()->get() as $shift)
-                                        <option value="{{ $shift->id }}" {{ in_array($shift->id, old('shifts', [])) ? 'selected' : '' }}>
-                                            {{ $shift->name }} ({{ $shift->start_time }} - {{ $shift->end_time }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('shifts')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -278,18 +262,49 @@
 
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Jenis Tunjangan</label>
+                                <label class="form-label">Shift Mengajar</label>
                                 <div class="form-check-group">
-                                    @foreach($allowanceTypes as $allowanceType)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="shift_none" name="shift_id" value="" checked>
+                                        <label class="form-check-label" for="shift_none">
+                                            Tidak ada shift
+                                        </label>
+                                    </div>
+                                    @foreach(\App\Models\Shift::active()->get() as $shift)
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   id="allowance_types_{{ $allowanceType->id }}"
-                                                   name="allowance_types[]" value="{{ $allowanceType->id }}"
-                                                   {{ in_array($allowanceType->id, old('allowance_types', [])) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
-                                                {{ $allowanceType->name }}
-                                                <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                            <input class="form-check-input" type="radio" id="shift_{{ $shift->id }}"
+                                                   name="shift_id" value="{{ $shift->id }}"
+                                                   {{ old('shift_id') == $shift->id ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="shift_{{ $shift->id }}">
+                                                {{ $shift->name }} ({{ $shift->start_time }} - {{ $shift->end_time }})
                                             </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('shift_id')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Tunjangan</label>
+                                <div class="form-check-group row form-allowance-types">
+                                    @foreach($allowanceTypes as $allowanceType)
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="allowance_types_{{ $allowanceType->id }}"
+                                                       name="allowance_types[]" value="{{ $allowanceType->id }}"
+                                                       {{ in_array($allowanceType->id, old('allowance_types', [])) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
+                                                    {{ $allowanceType->name }}
+                                                    <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                                </label>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -327,7 +342,7 @@ function toggleAllAllowances() {
 
 // Add a "Select All" button for allowances
 document.addEventListener('DOMContentLoaded', function() {
-    const allowanceContainer = document.querySelector('.form-check-group');
+    const allowanceContainer = document.querySelector('.form-allowance-types');
     if (allowanceContainer) {
         const selectAllBtn = document.createElement('button');
         selectAllBtn.type = 'button';
@@ -340,23 +355,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
-@endsection
-
-@section('styles')
-<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-@endsection
-
-@section('scripts')
-<script src="{{ asset('plugins/select2/js/select2.min.js') }}"></script>
-<script>
-$(document).ready(function() {
-    // Initialize Select2
-    $('.select2').select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        placeholder: 'Pilih shift...'
-    });
-});
-</script>
 @endsection

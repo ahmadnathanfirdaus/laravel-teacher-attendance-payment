@@ -14,31 +14,10 @@ class ShiftSeeder extends Seeder
     {
         $shifts = [
             [
-                'name' => 'Shift Pagi',
+                'name' => 'Reguler',
                 'start_time' => '07:00',
-                'end_time' => '12:00',
-                'description' => 'Shift pagi untuk guru kelas pagi',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Shift Siang',
-                'start_time' => '12:30',
-                'end_time' => '17:30',
-                'description' => 'Shift siang untuk guru kelas siang',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Shift Penuh',
-                'start_time' => '07:00',
-                'end_time' => '15:00',
-                'description' => 'Shift penuh untuk guru dan staff administrasi',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Shift Sore',
-                'start_time' => '15:00',
-                'end_time' => '18:00',
-                'description' => 'Shift sore untuk ekstrakurikuler dan bimbingan',
+                'end_time' => '16:00',
+                'description' => 'Shift reguler untuk kegiatan belajar mengajar',
                 'is_active' => true,
             ],
         ];

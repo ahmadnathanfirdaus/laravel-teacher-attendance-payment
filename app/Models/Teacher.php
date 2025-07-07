@@ -19,7 +19,6 @@ class Teacher extends Model
         'mata_pelajaran',
         'tanggal_masuk',
         'gaji_pokok',
-        'tunjangan',
         'is_active',
         'position_id',
         'education_level_id',
@@ -31,7 +30,6 @@ class Teacher extends Model
         'tanggal_lahir' => 'date',
         'tanggal_masuk' => 'date',
         'gaji_pokok' => 'decimal:2',
-        'tunjangan' => 'decimal:2',
         'is_active' => 'boolean',
         'working_days' => 'array',
     ];

@@ -77,14 +77,12 @@ class TeacherController extends Controller
             'mata_pelajaran' => 'required|string|max:255',
             'tanggal_masuk' => 'required|date',
             'gaji_pokok' => 'required|numeric|min:0',
-            'tunjangan' => 'nullable|numeric|min:0',
             'position_id' => 'nullable|exists:positions,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'working_days' => 'nullable|array',
             'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
-            'shifts' => 'nullable|array',
-            'shifts.*' => 'exists:shifts,id',
+            'shift_id' => 'nullable|exists:shifts,id',
             'allowance_types' => 'nullable|array',
             'allowance_types.*' => 'exists:allowance_types,id',
         ]);
@@ -118,7 +116,6 @@ class TeacherController extends Controller
             'mata_pelajaran' => $validated['mata_pelajaran'],
             'tanggal_masuk' => $validated['tanggal_masuk'],
             'gaji_pokok' => $validated['gaji_pokok'],
-            'tunjangan' => $validated['tunjangan'] ?? 0,
             'position_id' => $validated['position_id'] ?? null,
             'education_level_id' => $validated['education_level_id'] ?? null,
             'photo_path' => $photoPath,
@@ -126,15 +123,13 @@ class TeacherController extends Controller
             'is_active' => true,
         ]);
 
-        // Attach shifts if provided
-        if (isset($validated['shifts']) && !empty($validated['shifts'])) {
-            foreach ($validated['shifts'] as $shiftId) {
-                $teacher->shifts()->attach($shiftId, [
-                    'days' => implode(',', $validated['working_days'] ?? []),
-                    'effective_date' => $validated['tanggal_masuk'],
-                    'is_active' => true,
-                ]);
-            }
+        // Attach shift if provided
+        if (!empty($validated['shift_id'])) {
+            $teacher->shifts()->attach($validated['shift_id'], [
+                'days' => implode(',', $validated['working_days'] ?? []),
+                'effective_date' => $validated['tanggal_masuk'],
+                'is_active' => true,
+            ]);
         }
 
         // Attach allowance types if provided
@@ -145,7 +140,7 @@ class TeacherController extends Controller
                     $teacher->teacherAllowances()->create([
                         'allowance_type_id' => $allowanceTypeId,
                         'amount' => $allowanceType->default_amount,
-                        'effective_date' => $validated['tanggal_masuk'],
+                        'effective_date' => now(),
                         'is_active' => true,
                     ]);
                 }
@@ -219,14 +214,12 @@ class TeacherController extends Controller
             'mata_pelajaran' => 'required|string|max:255',
             'tanggal_masuk' => 'required|date',
             'gaji_pokok' => 'required|numeric|min:0',
-            'tunjangan' => 'nullable|numeric|min:0',
             'position_id' => 'nullable|exists:positions,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'working_days' => 'nullable|array',
             'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
-            'shifts' => 'nullable|array',
-            'shifts.*' => 'exists:shifts,id',
+            'shift_id' => 'nullable|exists:shifts,id',
             'allowance_types' => 'nullable|array',
             'allowance_types.*' => 'exists:allowance_types,id',
         ]);
@@ -260,23 +253,20 @@ class TeacherController extends Controller
             'mata_pelajaran' => $validated['mata_pelajaran'],
             'tanggal_masuk' => $validated['tanggal_masuk'],
             'gaji_pokok' => $validated['gaji_pokok'],
-            'tunjangan' => $validated['tunjangan'] ?? 0,
             'position_id' => $validated['position_id'] ?? null,
             'education_level_id' => $validated['education_level_id'] ?? null,
             'photo_path' => $photoPath,
             'working_days' => $validated['working_days'] ?? null,
         ]);
 
-        // Update shifts
+        // Update shift
         $teacher->shifts()->detach(); // Remove all existing shifts
-        if (isset($validated['shifts']) && !empty($validated['shifts'])) {
-            foreach ($validated['shifts'] as $shiftId) {
-                $teacher->shifts()->attach($shiftId, [
-                    'days' => implode(',', $validated['working_days'] ?? []),
-                    'effective_date' => now(),
-                    'is_active' => true,
-                ]);
-            }
+        if (!empty($validated['shift_id'])) {
+            $teacher->shifts()->attach($validated['shift_id'], [
+                'days' => implode(',', $validated['working_days'] ?? []),
+                'effective_date' => now(),
+                'is_active' => true,
+            ]);
         }
 
         // Update allowance types
@@ -322,75 +312,4 @@ class TeacherController extends Controller
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil dinonaktifkan.');
     }
 
-    /**
-     * Show teacher shifts management.
-     */
-    public function shifts(Teacher $teacher)
-    {
-        $user = Auth::user();
-
-        if ($user->role !== 'admin') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $teacher->load('shifts');
-        $availableShifts = Shift::active()->get();
-
-        return view('teachers.shifts', compact('teacher', 'availableShifts'));
-    }
-
-    /**
-     * Update teacher shifts.
-     */
-    public function updateShifts(Request $request, Teacher $teacher)
-    {
-        $user = Auth::user();
-
-        if ($user->role !== 'admin') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $validated = $request->validate([
-            'shifts' => 'nullable|array',
-            'shifts.*' => 'exists:shifts,id',
-            'working_days' => 'nullable|array',
-            'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
-        ]);
-
-        // Update teacher shifts
-        $teacher->shifts()->detach(); // Remove all existing shifts
-        if (isset($validated['shifts']) && !empty($validated['shifts'])) {
-            foreach ($validated['shifts'] as $shiftId) {
-                $teacher->shifts()->attach($shiftId, [
-                    'days' => implode(',', $validated['working_days'] ?? []),
-                    'effective_date' => now(),
-                    'is_active' => true,
-                ]);
-            }
-        }
-
-        // Update working days
-        $teacher->update([
-            'working_days' => $validated['working_days'] ?? null,
-        ]);
-
-        return redirect()->route('teachers.shifts', $teacher)
-            ->with('success', 'Shift guru berhasil diperbarui.');
-    }
-
-    /**
-     * Show teacher allowances management.
-     */
-    public function allowances(Teacher $teacher)
-    {
-        $user = Auth::user();
-
-        if ($user->role !== 'admin') {
-            abort(403, 'Unauthorized access.');
-        }
-
-        $teacher->load('teacherAllowances.allowanceType');
-
-        return view('teachers.allowances', compact('teacher'));
-    }
 }

@@ -107,7 +107,7 @@
                                                     @foreach($allowanceType->teacherAllowances as $teacherAllowance)
                                                         <tr>
                                                             <td>{{ $loop->iteration }}</td>
-                                                            <td>{{ $teacherAllowance->teacher->name }}</td>
+                                                            <td>{{ $teacherAllowance->teacher->nama_lengkap }}</td>
                                                             <td>{{ $teacherAllowance->teacher->nip }}</td>
                                                             <td>
                                                                 <strong>Rp {{ number_format($teacherAllowance->amount, 0, ',', '.') }}</strong>
@@ -117,9 +117,9 @@
                                                             </td>
                                                             <td>
                                                                 @if($teacherAllowance->is_active)
-                                                                    <span class="badge badge-success">Aktif</span>
+                                                                    <span class="badge bg-success">Aktif</span>
                                                                 @else
-                                                                    <span class="badge badge-danger">Nonaktif</span>
+                                                                    <span class="badge bg-danger">Nonaktif</span>
                                                                 @endif
                                                             </td>
                                                             <td>{{ $teacherAllowance->created_at->format('d/m/Y') }}</td>

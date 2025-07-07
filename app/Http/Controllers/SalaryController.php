@@ -112,22 +112,13 @@ class SalaryController extends Controller
         $totalGajiPokok = $gajiHarian * $hariHadir;
 
         // Hitung total tunjangan dari berbagai jenis tunjangan yang aktif
-        // Include allowances that are effective within the salary month
-        $salaryStartDate = Carbon::create($validated['tahun'], $monthNumber, 1);
-        $salaryEndDate = $salaryStartDate->copy()->endOfMonth();
-
         $totalTunjangan = $teacher->teacherAllowances()
                                  ->where('is_active', true)
-                                 ->where('effective_date', '<=', $salaryEndDate)
-                                 ->where(function($query) use ($salaryStartDate) {
-                                     $query->whereNull('end_date')
-                                           ->orWhere('end_date', '>=', $salaryStartDate);
-                                 })
                                  ->sum('amount');
 
-        // Fallback ke tunjangan lama jika tidak ada tunjangan baru
-        if ($totalTunjangan == 0) {
-            $totalTunjangan = $teacher->tunjangan ?? 0;
+        // Add position-based allowance
+        if ($teacher->position && $teacher->position->base_allowance > 0) {
+            $totalTunjangan += $teacher->position->base_allowance;
         }
 
         $totalGaji = $totalGajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
@@ -322,21 +313,10 @@ class SalaryController extends Controller
 
             // Calculate total allowances with detailed breakdown
             $totalTunjangan = 0;
-            $tunjanganDetails = [];
-
-            // Get all active allowances for this teacher
-            // Include allowances that are effective within the salary month
-            $salaryStartDate = Carbon::create($validated['tahun'], $monthNumber, 1);
-            $salaryEndDate = $salaryStartDate->copy()->endOfMonth();
-
+            $tunjanganDetails = [];            // Get all active allowances for this teacher
             $teacherAllowances = $teacher->teacherAllowances()
                                          ->with('allowanceType')
                                          ->where('is_active', true)
-                                         ->where('effective_date', '<=', $salaryEndDate)
-                                         ->where(function($query) use ($salaryStartDate) {
-                                             $query->whereNull('end_date')
-                                                   ->orWhere('end_date', '>=', $salaryStartDate);
-                                         })
                                          ->get();
 
             foreach ($teacherAllowances as $teacherAllowance) {
@@ -348,12 +328,13 @@ class SalaryController extends Controller
                 ];
             }
 
-            // If no specific allowances found, use the general tunjangan field
-            if ($totalTunjangan == 0 && $teacher->tunjangan > 0) {
-                $totalTunjangan = $teacher->tunjangan;
+            // Add position-based allowance
+            if ($teacher->position && $teacher->position->base_allowance > 0) {
+                $positionAllowance = $teacher->position->base_allowance;
+                $totalTunjangan += $positionAllowance;
                 $tunjanganDetails[] = [
-                    'type' => 'Tunjangan Umum',
-                    'amount' => $teacher->tunjangan
+                    'type' => 'Tunjangan Jabatan (' . $teacher->position->name . ')',
+                    'amount' => $positionAllowance
                 ];
             }
 

@@ -144,15 +144,69 @@
                         <td><strong>Gaji Pokok:</strong></td>
                         <td>Rp {{ number_format($teacher->gaji_pokok, 0, ',', '.') }}</td>
                     </tr>
+                    @if($teacher->position && $teacher->position->base_allowance > 0)
                     <tr>
-                        <td><strong>Tunjangan:</strong></td>
-                        <td>Rp {{ number_format($teacher->tunjangan, 0, ',', '.') }}</td>
+                        <td><strong>Tunjangan Jabatan:</strong></td>
+                        <td>Rp {{ number_format($teacher->position->base_allowance, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td><strong>Total Tunjangan Lainnya:</strong></td>
+                        <td>Rp {{ number_format($teacher->teacherAllowances->where('is_active', true)->sum('amount'), 0, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td><strong>Total:</strong></td>
-                        <td><strong>Rp {{ number_format($teacher->gaji_pokok + $teacher->tunjangan, 0, ',', '.') }}</strong></td>
+                        <td><strong>Total Penghasilan:</strong></td>
+                        <td><strong>Rp {{ number_format($teacher->gaji_pokok + ($teacher->position ? $teacher->position->base_allowance : 0) + $teacher->teacherAllowances->where('is_active', true)->sum('amount'), 0, ',', '.') }}</strong></td>
                     </tr>
                 </table>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Detail Tunjangan</h5>
+            </div>
+            <div class="card-body">
+                @if($teacher->position && $teacher->position->base_allowance > 0)
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                            <div>
+                                <strong>Tunjangan Jabatan ({{ $teacher->position->name }})</strong>
+                            </div>
+                            <div class="text-success fw-bold">
+                                Rp {{ number_format($teacher->position->base_allowance, 0, ',', '.') }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @if($teacher->teacherAllowances->where('is_active', true)->count() > 0)
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Tunjangan Lainnya:</h6>
+                        @foreach($teacher->teacherAllowances->where('is_active', true) as $allowance)
+                            <div class="d-flex justify-content-between align-items-center p-2 mb-2 border rounded">
+                                <div>
+                                    <span>{{ $allowance->allowanceType->name }}</span>
+                                    @if($allowance->notes)
+                                        <small class="text-muted d-block">{{ $allowance->notes }}</small>
+                                    @endif
+                                </div>
+                                <div class="text-primary fw-bold">
+                                    Rp {{ number_format($allowance->amount, 0, ',', '.') }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if(!$teacher->position || $teacher->position->base_allowance == 0)
+                    @if($teacher->teacherAllowances->where('is_active', true)->count() == 0)
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Belum ada tunjangan yang ditetapkan
+                        </div>
+                    @endif
+                @endif
             </div>
         </div>
 

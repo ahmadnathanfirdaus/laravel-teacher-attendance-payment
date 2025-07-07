@@ -101,12 +101,7 @@
                                     Jenis Tunjangan
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('teacher-allowances.index') }}">
-                                    <i class="fas fa-hand-holding-usd me-2"></i>
-                                    Tunjangan Guru
-                                </a>
-                            </li>
+
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('education-levels.index') }}">
                                     <i class="fas fa-graduation-cap me-2"></i>

@@ -156,7 +156,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="tanggal_masuk" class="form-label">Tanggal Masuk</label>
                                 <input type="date" class="form-control @error('tanggal_masuk') is-invalid @enderror"
@@ -167,23 +167,12 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="gaji_pokok" class="form-label">Gaji Pokok</label>
                                 <input type="number" class="form-control @error('gaji_pokok') is-invalid @enderror"
                                        id="gaji_pokok" name="gaji_pokok" value="{{ old('gaji_pokok', $teacher->gaji_pokok) }}" required>
                                 @error('gaji_pokok')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="tunjangan" class="form-label">Tunjangan</label>
-                                <input type="number" class="form-control @error('tunjangan') is-invalid @enderror"
-                                       id="tunjangan" name="tunjangan" value="{{ old('tunjangan', $teacher->tunjangan ?? 0) }}">
-                                @error('tunjangan')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -226,7 +215,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="photo" class="form-label">Foto Profil</label>
                                 @if($teacher->photo_path)
@@ -239,23 +228,6 @@
                                        id="photo" name="photo" accept="image/jpeg,image/png,image/jpg">
                                 <small class="text-muted">Format: JPG, PNG. Maksimal 2MB. Kosongkan jika tidak ingin mengubah foto.</small>
                                 @error('photo')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="shifts" class="form-label">Shift Mengajar</label>
-                                <select class="form-control select2 @error('shifts') is-invalid @enderror" id="shifts" name="shifts[]" multiple>
-                                    @foreach(\App\Models\Shift::active()->get() as $shift)
-                                        <option value="{{ $shift->id }}"
-                                                {{ in_array($shift->id, old('shifts', $teacher->shifts->pluck('id')->toArray())) ? 'selected' : '' }}>
-                                            {{ $shift->name }} ({{ $shift->start_time }} - {{ $shift->end_time }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('shifts')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -286,18 +258,49 @@
 
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Jenis Tunjangan</label>
+                                <label class="form-label">Shift Mengajar</label>
                                 <div class="form-check-group">
-                                    @foreach($allowanceTypes as $allowanceType)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" id="shift_none" name="shift_id" value="">
+                                        <label class="form-check-label" for="shift_none">
+                                            Tidak ada shift
+                                        </label>
+                                    </div>
+                                    @foreach(\App\Models\Shift::active()->get() as $shift)
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox"
-                                                   id="allowance_types_{{ $allowanceType->id }}"
-                                                   name="allowance_types[]" value="{{ $allowanceType->id }}"
-                                                   {{ in_array($allowanceType->id, old('allowance_types', $teacher->teacherAllowances->pluck('allowance_type_id')->toArray())) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
-                                                {{ $allowanceType->name }}
-                                                <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                            <input class="form-check-input" type="radio" id="shift_{{ $shift->id }}"
+                                                   name="shift_id" value="{{ $shift->id }}"
+                                                   {{ old('shift_id', $teacher->shifts->first()?->id) == $shift->id ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="shift_{{ $shift->id }}">
+                                                {{ $shift->name }} ({{ $shift->start_time }} - {{ $shift->end_time }})
                                             </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('shift_id')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Tunjangan</label>
+                                <div class="form-check-group row">
+                                    @foreach($allowanceTypes as $allowanceType)
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="allowance_types_{{ $allowanceType->id }}"
+                                                       name="allowance_types[]" value="{{ $allowanceType->id }}"
+                                                       {{ in_array($allowanceType->id, old('allowance_types', $teacher->teacherAllowances->pluck('allowance_type_id')->toArray())) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
+                                                    {{ $allowanceType->name }}
+                                                    <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                                </label>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -325,23 +328,8 @@
 </div>
 @endsection
 
-@section('styles')
-<link rel="stylesheet" href="{{ asset('plugins/select2/css/select2.min.css') }}">
-<link rel="stylesheet" href="{{ asset('plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-@endsection
-
 @section('scripts')
-<script src="{{ asset('plugins/select2/js/select2.min.js') }}"></script>
 <script>
-$(document).ready(function() {
-    // Initialize Select2
-    $('.select2').select2({
-        theme: 'bootstrap4',
-        width: '100%',
-        placeholder: 'Pilih shift...'
-    });
-});
-
 // Helper function to toggle allowance selection
 function toggleAllAllowances() {
     const checkboxes = document.querySelectorAll('input[name="allowance_types[]"]');

@@ -35,7 +35,7 @@ class UserSeeder extends Seeder
 
         // Create Sample Teacher User
         $guruUser = User::create([
-            'name' => 'Guru Contoh',
+            'name' => 'Muhaimin Iskandar, S.Pd',
             'email' => 'guru@yakiin.sch.id',
             'password' => Hash::make('guru123'),
             'role' => 'guru',
@@ -46,8 +46,8 @@ class UserSeeder extends Seeder
         Teacher::create([
             'user_id' => $guruUser->id,
             'nip' => '12345678901234567',
-            'nama_lengkap' => 'Guru Contoh, S.Pd',
-            'alamat' => 'Jl. Contoh No. 123, Jakarta',
+            'nama_lengkap' => 'Muhaimin Iskandar, S.Pd',
+            'alamat' => 'Jl. Kemerdekaan No. 10, Jakarta',
             'no_telepon' => '081234567890',
             'jenis_kelamin' => 'laki-laki',
             'tanggal_lahir' => '1985-01-15',
@@ -56,7 +56,6 @@ class UserSeeder extends Seeder
             'mata_pelajaran' => 'Matematika',
             'tanggal_masuk' => '2020-07-01',
             'gaji_pokok' => 4500000,
-            'tunjangan' => 500000,
             'is_active' => true,
         ]);
     }

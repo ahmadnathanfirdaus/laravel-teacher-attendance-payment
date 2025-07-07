@@ -75,11 +75,30 @@ class DashboardController extends Controller
                                      ->take(5)
                                      ->get();
 
+        // Get teacher's active allowances
+        $activeAllowances = $teacher->teacherAllowances()
+                                   ->with('allowanceType')
+                                   ->where('is_active', true)
+                                   ->get();
+
+        // Calculate total allowances
+        $totalAllowances = $activeAllowances->sum('amount');
+
+        // Add position allowance if exists
+        $positionAllowance = 0;
+        if ($teacher->position && $teacher->position->base_allowance > 0) {
+            $positionAllowance = $teacher->position->base_allowance;
+            $totalAllowances += $positionAllowance;
+        }
+
         return view('dashboard.teacher', compact(
             'teacher',
             'myAttendanceThisMonth',
             'mySalaryThisMonth',
-            'recentAttendances'
+            'recentAttendances',
+            'activeAllowances',
+            'totalAllowances',
+            'positionAllowance'
         ));
     }
 }

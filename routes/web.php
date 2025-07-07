@@ -8,7 +8,6 @@ use App\Http\Controllers\SelfAttendanceController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\AllowanceTypeController;
-use App\Http\Controllers\TeacherAllowanceController;
 use App\Http\Controllers\EducationLevelController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,10 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:admin,bendahara'])->group(function () {
         Route::resource('teachers', TeacherController::class)->except(['show']);
 
-        // Additional teacher management routes
-        Route::get('/teachers/{teacher}/shifts', [TeacherController::class, 'shifts'])->name('teachers.shifts');
-        Route::put('/teachers/{teacher}/shifts', [TeacherController::class, 'updateShifts'])->name('teachers.shifts.update');
-        Route::get('/teachers/{teacher}/allowances', [TeacherController::class, 'allowances'])->name('teachers.allowances');
+
+
     });
 
     // Admin only routes
@@ -53,9 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('allowance-types', AllowanceTypeController::class);
         Route::patch('/allowance-types/{allowanceType}/toggle-status', [AllowanceTypeController::class, 'toggleStatus'])->name('allowance-types.toggle-status');
 
-        // Teacher Allowances management
-        Route::resource('teacher-allowances', TeacherAllowanceController::class);
-        Route::patch('/teacher-allowances/{teacherAllowance}/toggle-status', [TeacherAllowanceController::class, 'toggleStatus'])->name('teacher-allowances.toggle-status');
+
     });
 
     // Teachers show route - accessible by all authenticated users with restrictions inside controller
