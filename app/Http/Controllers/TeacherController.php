@@ -67,7 +67,6 @@ class TeacherController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'nip' => 'required|string|unique:teachers,nip',
-            'nama_lengkap' => 'required|string|max:255',
             'alamat' => 'required|string',
             'no_telepon' => 'required|string|max:20',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
@@ -100,13 +99,13 @@ class TeacherController extends Controller
             'password' => Hash::make('password123'), // Default password
             'role' => 'guru',
             'is_active' => true,
+            'password_changed' => false, // User needs to change password on first login
         ]);
 
         // Create teacher record
         $teacher = Teacher::create([
             'user_id' => $newUser->id,
             'nip' => $validated['nip'],
-            'nama_lengkap' => $validated['nama_lengkap'],
             'alamat' => $validated['alamat'],
             'no_telepon' => $validated['no_telepon'],
             'jenis_kelamin' => $validated['jenis_kelamin'],
@@ -147,7 +146,7 @@ class TeacherController extends Controller
             }
         }
 
-        return redirect()->route('teachers.index')->with('success', 'Data guru berhasil ditambahkan.');
+        return redirect()->route('teachers.index')->with('success', 'Data guru berhasil ditambahkan. Password default adalah "password123", guru akan diminta mengubah password saat login pertama.');
     }
 
     /**
@@ -204,7 +203,6 @@ class TeacherController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $teacher->user_id,
             'nip' => 'required|string|unique:teachers,nip,' . $teacher->id,
-            'nama_lengkap' => 'required|string|max:255',
             'alamat' => 'required|string',
             'no_telepon' => 'required|string|max:20',
             'jenis_kelamin' => 'required|in:laki-laki,perempuan',
@@ -243,7 +241,6 @@ class TeacherController extends Controller
         // Update teacher record
         $teacher->update([
             'nip' => $validated['nip'],
-            'nama_lengkap' => $validated['nama_lengkap'],
             'alamat' => $validated['alamat'],
             'no_telepon' => $validated['no_telepon'],
             'jenis_kelamin' => $validated['jenis_kelamin'],

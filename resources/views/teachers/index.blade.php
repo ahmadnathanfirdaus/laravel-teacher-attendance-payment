@@ -28,7 +28,7 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-8">
-                                        <h6 class="card-title mb-1">{{ $teacher->nama_lengkap }}</h6>
+                                        <h6 class="card-title mb-1">{{ $teacher->user->name }}</h6>
                                         <small class="text-muted">NIP: {{ $teacher->nip }}</small>
                                     </div>
                                     <div class="col-4 text-end">
@@ -108,7 +108,7 @@
                                     @foreach($teachers as $teacher)
                                     <tr>
                                         <td>{{ $teacher->nip }}</td>
-                                        <td>{{ $teacher->nama_lengkap }}</td>
+                                        <td>{{ $teacher->user->name }}</td>
                                         <td>
                                             @if($teacher->educationLevel)
                                                 <span class="badge bg-info">{{ $teacher->educationLevel->name }}</span>

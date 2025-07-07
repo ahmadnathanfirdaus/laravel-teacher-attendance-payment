@@ -10,6 +10,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\AllowanceTypeController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\Auth\ChangePasswordController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,8 +20,14 @@ Route::get('/', function () {
 // Authentication routes
 require __DIR__.'/auth.php';
 
+// Change password routes (for first-time login)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/change-password', [ChangePasswordController::class, 'showChangePasswordForm'])->name('password.change.form');
+    Route::post('/change-password', [ChangePasswordController::class, 'changePassword'])->name('password.change');
+});
+
 // Protected routes
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'password.changed'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

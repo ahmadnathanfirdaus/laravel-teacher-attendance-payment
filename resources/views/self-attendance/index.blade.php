@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-12">
         <h1 class="h3 mb-3">Absensi Mandiri</h1>
-        <p class="text-muted mb-4">Selamat datang, {{ $teacher->nama_lengkap ?? 'Guru' }}</p>
+        <p class="text-muted mb-4">Selamat datang, {{ $teacher->user->name ?? 'Guru' }}</p>
     </div>
 </div>
 

@@ -77,7 +77,7 @@
                     </tr>
                     <tr>
                         <td><strong>Nama Lengkap:</strong></td>
-                        <td>{{ $teacher->nama_lengkap }}</td>
+                        <td>{{ $teacher->user->name }}</td>
                     </tr>
                     <tr>
                         <td><strong>Alamat:</strong></td>

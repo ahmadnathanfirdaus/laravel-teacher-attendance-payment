@@ -25,7 +25,7 @@
                     @if(auth()->user()->role !== 'guru')
                     <tr>
                         <td width="150"><strong>Nama Guru:</strong></td>
-                        <td>{{ $attendance->teacher->nama_lengkap }}</td>
+                        <td>{{ $attendance->teacher->user->name }}</td>
                     </tr>
                     <tr>
                         <td><strong>NIP:</strong></td>

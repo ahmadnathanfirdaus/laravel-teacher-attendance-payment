@@ -62,20 +62,20 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="base_salary">Gaji Pokok <span class="text-danger">*</span></label>
+                                    <label for="base_allowance">Tunjangan <span class="text-danger">*</span></label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp</span>
                                         </div>
                                         <input type="number"
-                                               class="form-control @error('base_salary') is-invalid @enderror"
-                                               id="base_salary"
-                                               name="base_salary"
-                                               value="{{ old('base_salary') }}"
+                                               class="form-control @error('base_allowance') is-invalid @enderror"
+                                               id="base_allowance"
+                                               name="base_allowance"
+                                               value="{{ old('base_allowance') }}"
                                                placeholder="0"
                                                min="0"
                                                required>
-                                        @error('base_salary')
+                                        @error('base_allowance')
                                             <span class="invalid-feedback">{{ $message }}</span>
                                         @enderror
                                     </div>
@@ -104,7 +104,7 @@
                                     <strong>Informasi:</strong>
                                     <ul class="mb-0 mt-2">
                                         <li>Level 1 = Jabatan terendah, Level 5 = Jabatan tertinggi</li>
-                                        <li>Gaji pokok akan digunakan sebagai dasar perhitungan gaji guru</li>
+                                        <li>Tunjangan akan digunakan sebagai dasar perhitungan gaji guru</li>
                                         <li>Nama jabatan harus unik dan tidak boleh sama</li>
                                     </ul>
                                 </div>
@@ -137,13 +137,13 @@
 <script>
 $(document).ready(function() {
     // Format currency input
-    $('#base_salary').on('input', function() {
+    $('#base_allowance').on('input', function() {
         var value = this.value.replace(/[^\d]/g, '');
         this.value = value;
     });
 
     // Format display with thousand separator
-    $('#base_salary').on('blur', function() {
+    $('#base_allowance').on('blur', function() {
         var value = parseInt(this.value);
         if (!isNaN(value)) {
             $(this).next('.input-group-append').find('.formatted-value').text(

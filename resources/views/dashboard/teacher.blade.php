@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-12">
         <h1 class="h3 mb-4">Dashboard Guru</h1>
-        <p class="text-muted">Selamat datang, {{ $teacher->nama_lengkap }}</p>
+        <p class="text-muted">Selamat datang, {{ $teacher->user->name }}</p>
     </div>
 </div>
 
@@ -85,7 +85,7 @@
                     </tr>
                     <tr>
                         <td><strong>Nama Lengkap:</strong></td>
-                        <td>{{ $teacher->nama_lengkap }}</td>
+                        <td>{{ $teacher->user->name }}</td>
                     </tr>
                     <tr>
                         <td><strong>Mata Pelajaran:</strong></td>

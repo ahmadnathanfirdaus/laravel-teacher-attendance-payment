@@ -173,7 +173,7 @@
                             <tbody>
                                 @foreach($recentAttendances as $attendance)
                                 <tr>
-                                    <td>{{ $attendance->teacher->nama_lengkap }}</td>
+                                    <td>{{ $attendance->teacher->user->name }}</td>
                                     <td>{{ $attendance->jam_masuk ?? '-' }}</td>
                                     <td>{{ $attendance->jam_keluar ?? '-' }}</td>
                                     <td>

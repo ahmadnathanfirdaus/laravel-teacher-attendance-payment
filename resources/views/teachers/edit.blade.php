@@ -59,14 +59,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
-                                <input type="text" class="form-control @error('nama_lengkap') is-invalid @enderror"
-                                       id="nama_lengkap" name="nama_lengkap" value="{{ old('nama_lengkap', $teacher->nama_lengkap) }}" required>
-                                @error('nama_lengkap')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <!-- Field nama lengkap dihapus, menggunakan field name dari user -->
                         </div>
                     </div>
 
