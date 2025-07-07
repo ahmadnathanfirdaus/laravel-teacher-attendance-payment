@@ -103,8 +103,7 @@ class SelfAttendanceController extends Controller
 
             if ($teacher->shifts->count() > 0 && $teacher->working_days && in_array($dayNameIndonesian, $teacher->working_days)) {
                 // Find the earliest shift for today
-                $activeShift = $teacher->shifts()
-                    ->where('is_active', true)
+                $activeShift = $teacher->activeShifts()
                     ->orderBy('start_time')
                     ->first();
 
