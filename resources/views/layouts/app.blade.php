@@ -136,6 +136,17 @@
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('leave-requests.index') }}">
+                        <i class="fas fa-calendar-times me-2"></i>
+                        @if(auth()->user()->role === 'guru')
+                            Pengajuan Cuti
+                        @else
+                            Manajemen Cuti
+                        @endif
+                    </a>
+                </li>
+
                 <li class="nav-item mt-4">
                     <a class="nav-link" href="{{ route('logout') }}"
                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

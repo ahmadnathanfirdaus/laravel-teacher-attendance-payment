@@ -9,6 +9,7 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\AllowanceTypeController;
 use App\Http\Controllers\EducationLevelController;
+use App\Http\Controllers\LeaveRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -63,6 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('salaries', SalaryController::class);
     Route::get('/salaries-bulk/create', [SalaryController::class, 'bulkCreate'])->name('salaries.bulk-create');
     Route::post('/salaries-bulk', [SalaryController::class, 'bulkStore'])->name('salaries.bulk-store');
+
+    // Leave Request routes
+    Route::resource('leave-requests', LeaveRequestController::class);
+    Route::patch('/leave-requests/{leave_request}/status', [LeaveRequestController::class, 'updateStatus'])->name('leave-requests.update-status');
 
     // Self Attendance routes (for teachers only)
     Route::middleware(['role:guru'])->group(function () {

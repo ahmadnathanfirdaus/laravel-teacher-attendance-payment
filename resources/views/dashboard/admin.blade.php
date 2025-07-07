@@ -106,6 +106,52 @@
 </div>
 
 <div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title">Pengajuan Cuti Pending</h5>
+                        <h2 class="mb-0">{{ $pendingLeaveRequests }}</h2>
+                        <small>menunggu persetujuan</small>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ route('leave-requests.index') }}?status=pending" class="text-white text-decoration-none">
+                        <small><i class="fas fa-external-link-alt me-1"></i>Kelola Cuti</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title">Cuti Disetujui Bulan Ini</h5>
+                        <h2 class="mb-0">{{ $approvedLeaveRequestsThisMonth }}</h2>
+                        <small>pengajuan disetujui</small>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ route('leave-requests.index') }}?status=approved" class="text-white text-decoration-none">
+                        <small><i class="fas fa-external-link-alt me-1"></i>Lihat Laporan</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
@@ -157,6 +203,65 @@
                     </div>
                 @else
                     <p class="text-muted">Belum ada data absensi hari ini.</p>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Pengajuan Cuti Terbaru (Pending)</h5>
+                <a href="{{ route('leave-requests.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt me-1"></i>Lihat Semua
+                </a>
+            </div>
+            <div class="card-body">
+                @if($recentLeaveRequests->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nama Guru</th>
+                                    <th>Jenis Cuti</th>
+                                    <th>Tanggal</th>
+                                    <th>Durasi</th>
+                                    <th>Alasan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentLeaveRequests as $leaveRequest)
+                                <tr>
+                                    <td>{{ $leaveRequest->teacher->user->name }}</td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ \App\Models\LeaveRequest::getLeaveTypes()[$leaveRequest->leave_type] }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ $leaveRequest->start_date->format('d M Y') }}
+                                        @if($leaveRequest->start_date->format('Y-m-d') !== $leaveRequest->end_date->format('Y-m-d'))
+                                            <br><small class="text-muted">s/d {{ $leaveRequest->end_date->format('d M Y') }}</small>
+                                        @endif
+                                    </td>
+                                    <td>{{ $leaveRequest->total_days }} hari</td>
+                                    <td>{{ Str::limit($leaveRequest->reason, 50) }}</td>
+                                    <td>
+                                        <a href="{{ route('leave-requests.show', $leaveRequest) }}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted">Tidak ada pengajuan cuti yang pending.</p>
                 @endif
             </div>
         </div>

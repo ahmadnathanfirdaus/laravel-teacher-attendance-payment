@@ -8,6 +8,7 @@ use App\Models\Salary;
 use App\Models\User;
 use App\Models\EducationLevel;
 use App\Models\AllowanceType;
+use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,11 +37,24 @@ class DashboardController extends Controller
         $totalEducationLevels = EducationLevel::where('is_active', true)->count();
         $totalAllowanceTypes = AllowanceType::where('is_active', true)->count();
 
+        // Leave requests statistics
+        $pendingLeaveRequests = LeaveRequest::where('status', 'pending')->count();
+        $approvedLeaveRequestsThisMonth = LeaveRequest::where('status', 'approved')
+                                                     ->whereMonth('created_at', now()->month)
+                                                     ->whereYear('created_at', now()->year)
+                                                     ->count();
+
         $recentAttendances = Attendance::with('teacher')
                                      ->whereDate('tanggal', today())
                                      ->latest()
                                      ->take(5)
                                      ->get();
+
+        $recentLeaveRequests = LeaveRequest::with(['teacher.user'])
+                                          ->where('status', 'pending')
+                                          ->latest()
+                                          ->take(5)
+                                          ->get();
 
         return view('dashboard.admin', compact(
             'totalTeachers',
@@ -48,7 +62,10 @@ class DashboardController extends Controller
             'totalSalariesThisMonth',
             'totalEducationLevels',
             'totalAllowanceTypes',
-            'recentAttendances'
+            'pendingLeaveRequests',
+            'approvedLeaveRequestsThisMonth',
+            'recentAttendances',
+            'recentLeaveRequests'
         ));
     }
 
@@ -91,6 +108,16 @@ class DashboardController extends Controller
             $totalAllowances += $positionAllowance;
         }
 
+        // Get teacher's leave requests
+        $myLeaveRequests = LeaveRequest::where('teacher_id', $teacher->id)
+                                      ->latest()
+                                      ->take(5)
+                                      ->get();
+
+        $pendingLeaveRequests = LeaveRequest::where('teacher_id', $teacher->id)
+                                           ->where('status', 'pending')
+                                           ->count();
+
         return view('dashboard.teacher', compact(
             'teacher',
             'myAttendanceThisMonth',
@@ -98,7 +125,9 @@ class DashboardController extends Controller
             'recentAttendances',
             'activeAllowances',
             'totalAllowances',
-            'positionAllowance'
+            'positionAllowance',
+            'myLeaveRequests',
+            'pendingLeaveRequests'
         ));
     }
 }

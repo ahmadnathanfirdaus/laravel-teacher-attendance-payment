@@ -173,4 +173,12 @@ class Teacher extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Get the leave requests for the teacher.
+     */
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
 }
