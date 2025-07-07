@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Position;
 use App\Models\Shift;
 use App\Models\EducationLevel;
+use App\Models\AllowanceType;
+use App\Models\TeacherAllowance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -45,8 +47,9 @@ class TeacherController extends Controller
         $positions = Position::active()->get();
         $shifts = Shift::active()->get();
         $educationLevels = EducationLevel::active()->get();
+        $allowanceTypes = AllowanceType::active()->get();
 
-        return view('teachers.create', compact('positions', 'shifts', 'educationLevels'));
+        return view('teachers.create', compact('positions', 'shifts', 'educationLevels', 'allowanceTypes'));
     }
 
     /**
@@ -82,6 +85,8 @@ class TeacherController extends Controller
             'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
             'shifts' => 'nullable|array',
             'shifts.*' => 'exists:shifts,id',
+            'allowance_types' => 'nullable|array',
+            'allowance_types.*' => 'exists:allowance_types,id',
         ]);
 
         // Handle photo upload
@@ -132,6 +137,21 @@ class TeacherController extends Controller
             }
         }
 
+        // Attach allowance types if provided
+        if (isset($validated['allowance_types']) && !empty($validated['allowance_types'])) {
+            foreach ($validated['allowance_types'] as $allowanceTypeId) {
+                $allowanceType = AllowanceType::find($allowanceTypeId);
+                if ($allowanceType) {
+                    $teacher->teacherAllowances()->create([
+                        'allowance_type_id' => $allowanceTypeId,
+                        'amount' => $allowanceType->default_amount,
+                        'effective_date' => $validated['tanggal_masuk'],
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        }
+
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil ditambahkan.');
     }
 
@@ -166,8 +186,12 @@ class TeacherController extends Controller
         $positions = Position::active()->get();
         $shifts = Shift::active()->get();
         $educationLevels = EducationLevel::active()->get();
+        $allowanceTypes = AllowanceType::active()->get();
 
-        return view('teachers.edit', compact('teacher', 'positions', 'shifts', 'educationLevels'));
+        // Load teacher allowances
+        $teacher->load(['teacherAllowances']);
+
+        return view('teachers.edit', compact('teacher', 'positions', 'shifts', 'educationLevels', 'allowanceTypes'));
     }
 
     /**
@@ -203,6 +227,8 @@ class TeacherController extends Controller
             'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
             'shifts' => 'nullable|array',
             'shifts.*' => 'exists:shifts,id',
+            'allowance_types' => 'nullable|array',
+            'allowance_types.*' => 'exists:allowance_types,id',
         ]);
 
         // Handle photo upload
@@ -221,7 +247,7 @@ class TeacherController extends Controller
             'email' => $validated['email'],
         ]);
 
-        // Update teacher
+        // Update teacher record
         $teacher->update([
             'nip' => $validated['nip'],
             'nama_lengkap' => $validated['nama_lengkap'],
@@ -251,6 +277,28 @@ class TeacherController extends Controller
                     'is_active' => true,
                 ]);
             }
+        }
+
+        // Update allowance types
+        if (isset($validated['allowance_types'])) {
+            // Remove existing allowances
+            $teacher->teacherAllowances()->delete();
+
+            // Add new allowances
+            foreach ($validated['allowance_types'] as $allowanceTypeId) {
+                $allowanceType = AllowanceType::find($allowanceTypeId);
+                if ($allowanceType) {
+                    $teacher->teacherAllowances()->create([
+                        'allowance_type_id' => $allowanceTypeId,
+                        'amount' => $allowanceType->default_amount,
+                        'effective_date' => now(),
+                        'is_active' => true,
+                    ]);
+                }
+            }
+        } else {
+            // If no allowance types selected, remove all existing allowances
+            $teacher->teacherAllowances()->delete();
         }
 
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil diperbarui.');

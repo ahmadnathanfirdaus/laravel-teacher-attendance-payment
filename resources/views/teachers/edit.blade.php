@@ -283,6 +283,30 @@
                                 @enderror
                             </div>
                         </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Tunjangan</label>
+                                <div class="form-check-group">
+                                    @foreach($allowanceTypes as $allowanceType)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox"
+                                                   id="allowance_types_{{ $allowanceType->id }}"
+                                                   name="allowance_types[]" value="{{ $allowanceType->id }}"
+                                                   {{ in_array($allowanceType->id, old('allowance_types', $teacher->teacherAllowances->pluck('allowance_type_id')->toArray())) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
+                                                {{ $allowanceType->name }}
+                                                <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('allowance_types')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">Pilih jenis tunjangan yang akan diberikan kepada guru ini.</small>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="alert alert-info">

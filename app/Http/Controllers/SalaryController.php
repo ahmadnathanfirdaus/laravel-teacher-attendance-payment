@@ -85,10 +85,16 @@ class SalaryController extends Controller
         $teacher = Teacher::findOrFail($validated['teacher_id']);
 
         // Hitung hari kerja dan hari hadir berdasarkan absensi
-        // Parse bulan dari string ke number (contoh: "Januari" -> 1, "01" -> 1)
+        // Parse bulan dari string ke number
+        $monthMapping = [
+            'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4,
+            'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8,
+            'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12
+        ];
+
         $monthNumber = is_numeric($validated['bulan'])
             ? (int) $validated['bulan']
-            : (int) date('m', strtotime($validated['bulan']));
+            : ($monthMapping[$validated['bulan']] ?? 1);
 
         $startDate = Carbon::create($validated['tahun'], $monthNumber, 1);
         $endDate = $startDate->copy()->endOfMonth();
@@ -108,7 +114,7 @@ class SalaryController extends Controller
         // Hitung total tunjangan dari berbagai jenis tunjangan yang aktif
         $totalTunjangan = $teacher->teacherAllowances()
                                  ->where('is_active', true)
-                                 ->where('effective_date', '<=', Carbon::create($validated['tahun'], $validated['bulan'], 1))
+                                 ->where('effective_date', '<=', Carbon::create($validated['tahun'], $monthNumber, 1))
                                  ->sum('amount');
 
         // Fallback ke tunjangan lama jika tidak ada tunjangan baru

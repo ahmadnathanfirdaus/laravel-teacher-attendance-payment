@@ -33,7 +33,7 @@
                                         <option value="">Pilih Guru</option>
                                         @foreach($teachers as $teacher)
                                             <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                                {{ $teacher->name }} ({{ $teacher->nip }})
+                                                {{ $teacher->nama_lengkap }} ({{ $teacher->nip }})
                                             </option>
                                         @endforeach
                                     </select>
