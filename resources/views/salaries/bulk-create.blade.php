@@ -24,7 +24,8 @@
                         <ul class="mb-0 mt-2">
                             <li>Fitur ini akan generate gaji untuk semua guru aktif sekaligus</li>
                             <li>Sistem akan melewati guru yang sudah memiliki data gaji untuk periode yang sama</li>
-                            <li>Gaji akan dihitung berdasarkan data absensi dan tunjangan masing-masing guru</li>
+                            <li>Gaji akan dihitung berdasarkan data absensi dan <strong>semua tunjangan aktif</strong> masing-masing guru</li>
+                            <li>Semua tunjangan yang efektif dalam bulan yang dipilih akan dimasukkan ke dalam perhitungan</li>
                             <li>Pastikan data absensi sudah lengkap sebelum generate gaji</li>
                         </ul>
                     </div>
@@ -139,7 +140,7 @@
                                     <ul class="mb-0">
                                         <li>Data absensi masing-masing guru</li>
                                         <li>Gaji pokok dan jabatan</li>
-                                        <li>Tunjangan yang aktif</li>
+                                        <li><strong>Semua tunjangan aktif yang efektif dalam periode tersebut</strong></li>
                                         <li>Bonus dan potongan global</li>
                                     </ul>
                                 </div>

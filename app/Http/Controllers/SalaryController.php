@@ -112,9 +112,17 @@ class SalaryController extends Controller
         $totalGajiPokok = $gajiHarian * $hariHadir;
 
         // Hitung total tunjangan dari berbagai jenis tunjangan yang aktif
+        // Include allowances that are effective within the salary month
+        $salaryStartDate = Carbon::create($validated['tahun'], $monthNumber, 1);
+        $salaryEndDate = $salaryStartDate->copy()->endOfMonth();
+
         $totalTunjangan = $teacher->teacherAllowances()
                                  ->where('is_active', true)
-                                 ->where('effective_date', '<=', Carbon::create($validated['tahun'], $monthNumber, 1))
+                                 ->where('effective_date', '<=', $salaryEndDate)
+                                 ->where(function($query) use ($salaryStartDate) {
+                                     $query->whereNull('end_date')
+                                           ->orWhere('end_date', '>=', $salaryStartDate);
+                                 })
                                  ->sum('amount');
 
         // Fallback ke tunjangan lama jika tidak ada tunjangan baru
@@ -231,7 +239,7 @@ class SalaryController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role === 'guru') {
+        if ($user && $user->role === 'guru') {
             abort(403, 'Unauthorized access.');
         }
 
@@ -245,7 +253,7 @@ class SalaryController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->role === 'guru') {
+        if ($user && $user->role === 'guru') {
             abort(403, 'Unauthorized access.');
         }
 
@@ -312,17 +320,55 @@ class SalaryController extends Controller
             $gajiHarian = $gajiPokok / $hariKerja;
             $totalGajiPokok = $gajiHarian * $hariHadir;
 
-            // Calculate total allowances
-            $totalTunjangan = $teacher->teacherAllowances()
-                                     ->where('is_active', true)
-                                     ->where('effective_date', '<=', Carbon::create($validated['tahun'], $monthNumber, 1))
-                                     ->sum('amount');
+            // Calculate total allowances with detailed breakdown
+            $totalTunjangan = 0;
+            $tunjanganDetails = [];
 
-            if ($totalTunjangan == 0) {
-                $totalTunjangan = $teacher->tunjangan ?? 0;
+            // Get all active allowances for this teacher
+            // Include allowances that are effective within the salary month
+            $salaryStartDate = Carbon::create($validated['tahun'], $monthNumber, 1);
+            $salaryEndDate = $salaryStartDate->copy()->endOfMonth();
+
+            $teacherAllowances = $teacher->teacherAllowances()
+                                         ->with('allowanceType')
+                                         ->where('is_active', true)
+                                         ->where('effective_date', '<=', $salaryEndDate)
+                                         ->where(function($query) use ($salaryStartDate) {
+                                             $query->whereNull('end_date')
+                                                   ->orWhere('end_date', '>=', $salaryStartDate);
+                                         })
+                                         ->get();
+
+            foreach ($teacherAllowances as $teacherAllowance) {
+                $allowanceAmount = $teacherAllowance->amount;
+                $totalTunjangan += $allowanceAmount;
+                $tunjanganDetails[] = [
+                    'type' => $teacherAllowance->allowanceType->name,
+                    'amount' => $allowanceAmount
+                ];
+            }
+
+            // If no specific allowances found, use the general tunjangan field
+            if ($totalTunjangan == 0 && $teacher->tunjangan > 0) {
+                $totalTunjangan = $teacher->tunjangan;
+                $tunjanganDetails[] = [
+                    'type' => 'Tunjangan Umum',
+                    'amount' => $teacher->tunjangan
+                ];
             }
 
             $totalGaji = $totalGajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
+
+            // Prepare keterangan with allowance details
+            $keteranganWithDetails = $validated['keterangan'] ?? '';
+            if (!empty($tunjanganDetails)) {
+                $keteranganWithDetails .= (empty($keteranganWithDetails) ? '' : ' | ') . 'Tunjangan: ';
+                $allowanceList = [];
+                foreach ($tunjanganDetails as $detail) {
+                    $allowanceList[] = $detail['type'] . ' (Rp ' . number_format($detail['amount'], 0, ',', '.') . ')';
+                }
+                $keteranganWithDetails .= implode(', ', $allowanceList);
+            }
 
             // Create salary record
             Salary::create([
@@ -338,7 +384,7 @@ class SalaryController extends Controller
                 'hari_tidak_hadir' => $hariTidakHadir,
                 'total_gaji' => $totalGaji,
                 'status' => 'draft',
-                'keterangan' => $validated['keterangan'],
+                'keterangan' => $keteranganWithDetails,
             ]);
 
             $successCount++;
