@@ -17,9 +17,9 @@ class Teacher extends Model
         'pendidikan_terakhir',
         'mata_pelajaran',
         'tanggal_masuk',
-        'gaji_pokok',
+        'nominal',
+        'salary_type',
         'is_active',
-        'position_id',
         'education_level_id',
         'photo_path',
         'working_days',
@@ -28,7 +28,7 @@ class Teacher extends Model
     protected $casts = [
         'tanggal_lahir' => 'date',
         'tanggal_masuk' => 'date',
-        'gaji_pokok' => 'decimal:2',
+        'nominal' => 'decimal:2',
         'is_active' => 'boolean',
         'working_days' => 'array',
     ];
@@ -58,11 +58,24 @@ class Teacher extends Model
     }
 
     /**
-     * Get the position of the teacher.
+     * Get the positions that belong to this teacher (many-to-many relationship).
      */
-    public function position()
+    public function positions()
     {
-        return $this->belongsTo(Position::class);
+        return $this->belongsToMany(Position::class, 'teacher_positions')
+                    ->withPivot([
+                        'is_active',
+                        'notes'
+                    ])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get active positions for this teacher.
+     */
+    public function activePositions()
+    {
+        return $this->positions()->wherePivot('is_active', true);
     }
 
     /**

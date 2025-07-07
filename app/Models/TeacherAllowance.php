@@ -11,6 +11,7 @@ class TeacherAllowance extends Model
         'teacher_id',
         'allowance_type_id',
         'amount',
+        'calculation_type',
         'effective_date',
         'end_date',
         'notes',

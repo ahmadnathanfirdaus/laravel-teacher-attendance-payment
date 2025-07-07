@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
             'pendidikan_terakhir' => 'S1 Pendidikan',
             'mata_pelajaran' => 'Matematika',
             'tanggal_masuk' => '2020-07-01',
-            'gaji_pokok' => 4500000,
+            'nominal' => 4500000,
             'is_active' => true,
         ]);
     }

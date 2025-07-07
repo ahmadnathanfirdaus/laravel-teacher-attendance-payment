@@ -41,9 +41,14 @@
                     <tr>
                         <td><strong>Jabatan:</strong></td>
                         <td>
-                            @if($teacher->position)
-                                {{ $teacher->position->name }}
-                                <br><small class="text-muted">Level {{ $teacher->position->level }}</small>
+                            @if($teacher->positions && $teacher->positions->count() > 0)
+                                @foreach($teacher->positions as $position)
+                                    <span class="badge bg-primary me-1">{{ $position->name }}</span>
+                                    @if($position->base_allowance > 0)
+                                        <small class="text-muted">(Tunjangan: Rp {{ number_format($position->base_allowance, 0, ',', '.') }})</small>
+                                    @endif
+                                    @if(!$loop->last)<br>@endif
+                                @endforeach
                             @else
                                 <span class="text-muted">Belum ditentukan</span>
                             @endif
@@ -141,13 +146,25 @@
             <div class="card-body">
                 <table class="table table-borderless">
                     <tr>
-                        <td><strong>Gaji Pokok:</strong></td>
-                        <td>Rp {{ number_format($teacher->gaji_pokok, 0, ',', '.') }}</td>
+                        <td><strong>Tipe Gaji:</strong></td>
+                        <td>
+                            <span class="badge bg-info">{{ str_replace('_', ' ', ucfirst($teacher->salary_type ?? 'per_bulan')) }}</span>
+                        </td>
                     </tr>
-                    @if($teacher->position && $teacher->position->base_allowance > 0)
+                    <tr>
+                        <td><strong>Nominal Gaji:</strong></td>
+                        <td>Rp {{ number_format($teacher->nominal ?? $teacher->gaji_pokok, 0, ',', '.') }}</td>
+                    </tr>
+                    @php
+                        $totalPositionAllowance = 0;
+                        if($teacher->positions) {
+                            $totalPositionAllowance = $teacher->positions->sum('base_allowance');
+                        }
+                    @endphp
+                    @if($totalPositionAllowance > 0)
                     <tr>
                         <td><strong>Tunjangan Jabatan:</strong></td>
-                        <td>Rp {{ number_format($teacher->position->base_allowance, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($totalPositionAllowance, 0, ',', '.') }}</td>
                     </tr>
                     @endif
                     <tr>
@@ -156,7 +173,7 @@
                     </tr>
                     <tr>
                         <td><strong>Total Penghasilan:</strong></td>
-                        <td><strong>Rp {{ number_format($teacher->gaji_pokok + ($teacher->position ? $teacher->position->base_allowance : 0) + $teacher->teacherAllowances->where('is_active', true)->sum('amount'), 0, ',', '.') }}</strong></td>
+                        <td><strong>Rp {{ number_format(($teacher->nominal ?? $teacher->gaji_pokok) + $totalPositionAllowance + $teacher->teacherAllowances->where('is_active', true)->sum('amount'), 0, ',', '.') }}</strong></td>
                     </tr>
                 </table>
             </div>
@@ -167,16 +184,27 @@
                 <h5 class="card-title mb-0">Detail Tunjangan</h5>
             </div>
             <div class="card-body">
-                @if($teacher->position && $teacher->position->base_allowance > 0)
+                @php
+                    $totalPositionAllowance = 0;
+                    if($teacher->positions) {
+                        $totalPositionAllowance = $teacher->positions->sum('base_allowance');
+                    }
+                @endphp
+                @if($totalPositionAllowance > 0)
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
-                            <div>
-                                <strong>Tunjangan Jabatan ({{ $teacher->position->name }})</strong>
-                            </div>
-                            <div class="text-success fw-bold">
-                                Rp {{ number_format($teacher->position->base_allowance, 0, ',', '.') }}
-                            </div>
-                        </div>
+                        <h6 class="text-muted mb-2">Tunjangan Jabatan:</h6>
+                        @foreach($teacher->positions as $position)
+                            @if($position->base_allowance > 0)
+                                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded mb-2">
+                                    <div>
+                                        <strong>{{ $position->name }}</strong>
+                                    </div>
+                                    <div class="text-success fw-bold">
+                                        Rp {{ number_format($position->base_allowance, 0, ',', '.') }}
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
                     </div>
                 @endif
 
@@ -187,8 +215,8 @@
                             <div class="d-flex justify-content-between align-items-center p-2 mb-2 border rounded">
                                 <div>
                                     <span>{{ $allowance->allowanceType->name }}</span>
-                                    @if($allowance->notes)
-                                        <small class="text-muted d-block">{{ $allowance->notes }}</small>
+                                    @if($allowance->calculation_type)
+                                        <small class="text-muted d-block">Perhitungan: {{ str_replace('_', ' ', $allowance->calculation_type) }}</small>
                                     @endif
                                 </div>
                                 <div class="text-primary fw-bold">
@@ -199,13 +227,11 @@
                     </div>
                 @endif
 
-                @if(!$teacher->position || $teacher->position->base_allowance == 0)
-                    @if($teacher->teacherAllowances->where('is_active', true)->count() == 0)
-                        <div class="text-center text-muted py-3">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Belum ada tunjangan yang ditetapkan
-                        </div>
-                    @endif
+                @if($totalPositionAllowance == 0 && $teacher->teacherAllowances->where('is_active', true)->count() == 0)
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Belum ada tunjangan yang ditetapkan
+                    </div>
                 @endif
             </div>
         </div>
@@ -258,6 +284,7 @@
                         <thead>
                             <tr>
                                 <th>Jenis Tunjangan</th>
+                                <th>Tipe Perhitungan</th>
                                 <th>Jumlah</th>
                                 <th>Status</th>
                                 <th>Berlaku Mulai</th>
@@ -267,6 +294,13 @@
                             @foreach($teacher->teacherAllowances as $allowance)
                                 <tr>
                                     <td>{{ $allowance->allowanceType->name }}</td>
+                                    <td>
+                                        @if($allowance->calculation_type)
+                                            <span class="badge bg-secondary">{{ str_replace('_', ' ', $allowance->calculation_type) }}</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                     <td>Rp {{ number_format($allowance->amount, 0, ',', '.') }}</td>
                                     <td>
                                         @if($allowance->is_active)

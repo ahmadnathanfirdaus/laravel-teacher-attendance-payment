@@ -162,32 +162,66 @@
 
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="gaji_pokok" class="form-label">Gaji Pokok</label>
-                                <input type="number" class="form-control @error('gaji_pokok') is-invalid @enderror"
-                                       id="gaji_pokok" name="gaji_pokok" value="{{ old('gaji_pokok', $teacher->gaji_pokok) }}" required>
-                                @error('gaji_pokok')
+                                <label for="salary_type" class="form-label">Tipe Gaji</label>
+                                <select class="form-select @error('salary_type') is-invalid @enderror"
+                                        id="salary_type" name="salary_type" required>
+                                    <option value="">Pilih Tipe Gaji</option>
+                                    <option value="per_hari" {{ old('salary_type', $teacher->salary_type ?? 'per_bulan') == 'per_hari' ? 'selected' : '' }}>Per Hari</option>
+                                    <option value="per_jam" {{ old('salary_type', $teacher->salary_type ?? 'per_bulan') == 'per_jam' ? 'selected' : '' }}>Per Jam</option>
+                                    <option value="per_bulan" {{ old('salary_type', $teacher->salary_type ?? 'per_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan</option>
+                                </select>
+                                @error('salary_type')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nominal" class="form-label">Nominal Gaji</label>
+                                <input type="number" class="form-control @error('nominal') is-invalid @enderror"
+                                       id="nominal" name="nominal" value="{{ old('nominal', $teacher->nominal ?? $teacher->gaji_pokok) }}" required>
+                                @error('nominal')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted" id="salary-help-text">
+                                    @if(old('salary_type', $teacher->salary_type ?? 'per_bulan') == 'per_hari')
+                                        Nominal akan dikalikan dengan jumlah hari kerja
+                                    @elseif(old('salary_type', $teacher->salary_type ?? 'per_bulan') == 'per_jam')
+                                        Nominal akan dikalikan dengan jumlah jam kerja
+                                    @else
+                                        Nominal gaji bulanan tetap
+                                    @endif
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6"></div>
+                    </div>
+
                     <!-- New fields for position, education level, photo, and shifts -->
                     <div class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="position_id" class="form-label">Jabatan</label>
-                                <select class="form-control @error('position_id') is-invalid @enderror" id="position_id" name="position_id">
-                                    <option value="">Pilih Jabatan</option>
+                                <label for="positions" class="form-label">Jabatan <span class="text-danger">*</span></label>
+                                <select class="form-select @error('positions') is-invalid @enderror"
+                                        id="positions" name="positions[]" multiple required>
                                     @foreach(\App\Models\Position::active()->get() as $position)
-                                        <option value="{{ $position->id }}" {{ old('position_id', $teacher->position_id) == $position->id ? 'selected' : '' }}>
-                                            {{ $position->name }} (Level {{ $position->level }})
+                                        <option value="{{ $position->id }}"
+                                                {{ in_array($position->id, old('positions', $teacher->positions->pluck('id')->toArray() ?? [])) ? 'selected' : '' }}>
+                                            {{ $position->name }}
+                                            @if($position->base_allowance > 0)
+                                                (Tunjangan: Rp {{ number_format($position->base_allowance, 0, ',', '.') }})
+                                            @endif
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('position_id')
+                                @error('positions')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                <small class="text-muted">Tahan Ctrl (Windows) atau Cmd (Mac) untuk memilih lebih dari satu jabatan.</small>
                             </div>
                         </div>
 
@@ -208,7 +242,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="photo" class="form-label">Foto Profil</label>
                                 @if($teacher->photo_path)
@@ -281,18 +315,49 @@
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Jenis Tunjangan</label>
-                                <div class="form-check-group row">
+                                <div class="form-check-group row" id="allowanceContainer">
+                                    @php
+                                        $existingAllowances = $teacher->teacherAllowances->keyBy('allowance_type_id');
+                                    @endphp
                                     @foreach($allowanceTypes as $allowanceType)
-                                        <div class="col-md-6 mb-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox"
-                                                       id="allowance_types_{{ $allowanceType->id }}"
-                                                       name="allowance_types[]" value="{{ $allowanceType->id }}"
-                                                       {{ in_array($allowanceType->id, old('allowance_types', $teacher->teacherAllowances->pluck('allowance_type_id')->toArray())) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
-                                                    {{ $allowanceType->name }}
-                                                    <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
-                                                </label>
+                                        @php
+                                            $existingAllowance = $existingAllowances->get($allowanceType->id);
+                                            $isChecked = $existingAllowance || in_array($allowanceType->id, old('allowance_types', []));
+                                        @endphp
+                                        <div class="col-md-6 mb-3">
+                                            <div class="card">
+                                                <div class="card-body p-3">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input allowance-checkbox" type="checkbox"
+                                                               id="allowance_types_{{ $allowanceType->id }}"
+                                                               name="allowance_types[]" value="{{ $allowanceType->id }}"
+                                                               {{ $isChecked ? 'checked' : '' }}
+                                                               onchange="toggleAllowanceOptions({{ $allowanceType->id }})">
+                                                        <label class="form-check-label fw-bold" for="allowance_types_{{ $allowanceType->id }}">
+                                                            {{ $allowanceType->name }}
+                                                            <small class="text-muted">(Default: Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="allowance-options" id="allowance_options_{{ $allowanceType->id }}"
+                                                         style="display: {{ $isChecked ? 'block' : 'none' }}">
+                                                        <div class="mb-2">
+                                                            <label class="form-label small">Tipe Perhitungan:</label>
+                                                            <select class="form-select form-select-sm" name="allowance_calculation_types[{{ $allowanceType->id }}]">
+                                                                <option value="per_hari" {{ old("allowance_calculation_types.{$allowanceType->id}", $existingAllowance->calculation_type ?? $allowanceType->calculation_type ?? 'per_hari') == 'per_hari' ? 'selected' : '' }}>Per Hari</option>
+                                                                <option value="per_bulan" {{ old("allowance_calculation_types.{$allowanceType->id}", $existingAllowance->calculation_type ?? $allowanceType->calculation_type ?? 'per_hari') == 'per_bulan' ? 'selected' : '' }}>Per Bulan</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <label class="form-label small">Nominal Custom:</label>
+                                                            <input type="number" class="form-control form-control-sm"
+                                                                   name="allowance_amounts[{{ $allowanceType->id }}]"
+                                                                   value="{{ old("allowance_amounts.{$allowanceType->id}", $existingAllowance->amount ?? '') }}"
+                                                                   placeholder="Default: Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }}">
+                                                            <small class="text-muted">Kosongkan untuk menggunakan nominal default</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -323,28 +388,75 @@
 
 @section('scripts')
 <script>
-// Helper function to toggle allowance selection
+// Salary type change handler
+function handleSalaryTypeChange() {
+    const salaryType = document.getElementById('salary_type').value;
+    const helpText = document.getElementById('salary-help-text');
+
+    switch(salaryType) {
+        case 'per_hari':
+            helpText.textContent = 'Nominal akan dikalikan dengan jumlah hari kerja';
+            break;
+        case 'per_jam':
+            helpText.textContent = 'Nominal akan dikalikan dengan jumlah jam kerja';
+            break;
+        case 'per_bulan':
+            helpText.textContent = 'Nominal gaji bulanan tetap';
+            break;
+        default:
+            helpText.textContent = 'Pilih tipe gaji terlebih dahulu';
+    }
+}
+
+// Toggle allowance options visibility
+function toggleAllowanceOptions(allowanceId) {
+    const checkbox = document.getElementById(`allowance_types_${allowanceId}`);
+    const options = document.getElementById(`allowance_options_${allowanceId}`);
+
+    if (checkbox.checked) {
+        options.style.display = 'block';
+    } else {
+        options.style.display = 'none';
+    }
+}
+
+// Helper function to toggle all allowances
 function toggleAllAllowances() {
     const checkboxes = document.querySelectorAll('input[name="allowance_types[]"]');
     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
 
     checkboxes.forEach(cb => {
         cb.checked = !allChecked;
+        // Trigger the onchange event to show/hide options
+        toggleAllowanceOptions(cb.value);
     });
 }
 
-// Add a "Select All" button for allowances
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
-    const allowanceContainer = document.querySelector('.form-check-group');
+    // Set up salary type change listener
+    const salaryTypeSelect = document.getElementById('salary_type');
+    if (salaryTypeSelect) {
+        salaryTypeSelect.addEventListener('change', handleSalaryTypeChange);
+        handleSalaryTypeChange(); // Initialize help text
+    }
+
+    // Add a "Select All" button for allowances
+    const allowanceContainer = document.getElementById('allowanceContainer');
     if (allowanceContainer) {
         const selectAllBtn = document.createElement('button');
         selectAllBtn.type = 'button';
-        selectAllBtn.className = 'btn btn-sm btn-outline-secondary mb-2';
+        selectAllBtn.className = 'btn btn-sm btn-outline-secondary mb-3';
         selectAllBtn.innerHTML = '<i class="fas fa-check-double me-1"></i>Pilih Semua / Batal Pilih';
         selectAllBtn.onclick = toggleAllAllowances;
 
         allowanceContainer.parentNode.insertBefore(selectAllBtn, allowanceContainer);
     }
+
+    // Initialize allowance options visibility based on current state
+    document.querySelectorAll('.allowance-checkbox').forEach(checkbox => {
+        toggleAllowanceOptions(checkbox.value);
+    });
 });
 </script>
 @endsection

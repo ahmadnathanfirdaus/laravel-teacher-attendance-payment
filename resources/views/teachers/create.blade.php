@@ -161,10 +161,15 @@
 
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="gaji_pokok" class="form-label">Gaji Pokok</label>
-                                <input type="number" class="form-control @error('gaji_pokok') is-invalid @enderror"
-                                       id="gaji_pokok" name="gaji_pokok" value="{{ old('gaji_pokok') }}" required>
-                                @error('gaji_pokok')
+                                <label for="salary_type" class="form-label">Tipe Penggajian</label>
+                                <select class="form-select @error('salary_type') is-invalid @enderror"
+                                        id="salary_type" name="salary_type" required onchange="updateNominalLabel()">
+                                    <option value="">Pilih Tipe Penggajian</option>
+                                    <option value="per_hari" {{ old('salary_type') == 'per_hari' ? 'selected' : '' }}>Per Hari</option>
+                                    <option value="per_jam" {{ old('salary_type') == 'per_jam' ? 'selected' : '' }}>Per Jam</option>
+                                    <option value="per_bulan" {{ old('salary_type', 'per_bulan') == 'per_bulan' ? 'selected' : '' }}>Per Bulan</option>
+                                </select>
+                                @error('salary_type')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -172,35 +177,23 @@
 
                         <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="tunjangan" class="form-label">Tunjangan</label>
-                                <input type="number" class="form-control @error('tunjangan') is-invalid @enderror"
-                                       id="tunjangan" name="tunjangan" value="{{ old('tunjangan', 0) }}">
-                                @error('tunjangan')
+                                <label for="nominal" class="form-label">
+                                    <span id="nominal-label">Nominal Gaji</span>
+                                </label>
+                                <input type="number" class="form-control @error('nominal') is-invalid @enderror"
+                                       id="nominal" name="nominal" value="{{ old('nominal') }}" required>
+                                <div class="form-text">
+                                    <span id="nominal-help">Masukkan nominal sesuai tipe penggajian</span>
+                                </div>
+                                @error('nominal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
                     </div>
 
-                    <!-- New fields for position, education level, photo, and shifts -->
+                    <!-- New fields for education level, photo, and shifts -->
                     <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="position_id" class="form-label">Jabatan</label>
-                                <select class="form-control @error('position_id') is-invalid @enderror" id="position_id" name="position_id">
-                                    <option value="">Pilih Jabatan</option>
-                                    @foreach(\App\Models\Position::active()->get() as $position)
-                                        <option value="{{ $position->id }}" {{ old('position_id') == $position->id ? 'selected' : '' }}>
-                                            {{ $position->name }} (Level {{ $position->level }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('position_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="education_level_id" class="form-label">Jenjang Pendidikan</label>
@@ -231,6 +224,35 @@
                         </div>
                     </div>
 
+                    <!-- Multiple Positions Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="positions" class="form-label">Jabatan (Bisa Lebih dari Satu)</label>
+                                <select class="form-select @error('positions') is-invalid @enderror"
+                                        id="positions" name="positions[]" multiple size="5">
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}"
+                                                {{ in_array($position->id, old('positions', [])) ? 'selected' : '' }}>
+                                            {{ $position->name }}
+                                            @if($position->base_allowance > 0)
+                                                (Tunjangan: Rp {{ number_format($position->base_allowance) }})
+                                            @endif
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">
+                                    Tahan Ctrl (Windows) atau Cmd (Mac) untuk memilih lebih dari satu jabatan.
+                                    Pilih minimal satu jabatan untuk guru ini.
+                                </div>
+                                @error('positions')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Working Days and Shifts Section -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -285,18 +307,41 @@
                         <div class="col-12">
                             <div class="mb-3">
                                 <label class="form-label">Jenis Tunjangan</label>
-                                <div class="form-check-group row form-allowance-types">
+                                <div class="form-allowance-types">
                                     @foreach($allowanceTypes as $allowanceType)
-                                        <div class="col-md-6 mb-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox"
-                                                       id="allowance_types_{{ $allowanceType->id }}"
-                                                       name="allowance_types[]" value="{{ $allowanceType->id }}"
-                                                       {{ in_array($allowanceType->id, old('allowance_types', [])) ? 'checked' : '' }}>
-                                                <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
-                                                    {{ $allowanceType->name }}
-                                                    <small class="text-muted">(Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
-                                                </label>
+                                        <div class="card mb-3" style="display: none;" id="allowance_card_{{ $allowanceType->id }}">
+                                            <div class="card-body">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-4">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input allowance-checkbox" type="checkbox"
+                                                                   id="allowance_types_{{ $allowanceType->id }}"
+                                                                   name="allowance_types[]" value="{{ $allowanceType->id }}"
+                                                                   {{ in_array($allowanceType->id, old('allowance_types', [])) ? 'checked' : '' }}
+                                                                   onchange="toggleAllowanceOptions({{ $allowanceType->id }})">
+                                                            <label class="form-check-label" for="allowance_types_{{ $allowanceType->id }}">
+                                                                <strong>{{ $allowanceType->name }}</strong>
+                                                                <small class="text-muted">(Default: Rp {{ number_format($allowanceType->default_amount, 0, ',', '.') }})</small>
+                                                                <br><small class="text-muted">{{ $allowanceType->description }}</small>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4" id="calculation_options_{{ $allowanceType->id }}" style="display: none;">
+                                                        <label for="allowance_calculation_{{ $allowanceType->id }}" class="form-label">Tipe Perhitungan</label>
+                                                        <select class="form-select" name="allowance_calculation_{{ $allowanceType->id }}" id="allowance_calculation_{{ $allowanceType->id }}">
+                                                            <option value="per_hari" {{ ($allowanceType->calculation_type ?? 'per_hari') == 'per_hari' ? 'selected' : '' }}>Per Hari</option>
+                                                            <option value="per_bulan" {{ ($allowanceType->calculation_type ?? 'per_hari') == 'per_bulan' ? 'selected' : '' }}>Per Bulan</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4" id="amount_options_{{ $allowanceType->id }}" style="display: none;">
+                                                        <label for="allowance_amount_{{ $allowanceType->id }}" class="form-label">Nominal</label>
+                                                        <input type="number" class="form-control"
+                                                               name="allowance_amount_{{ $allowanceType->id }}"
+                                                               id="allowance_amount_{{ $allowanceType->id }}"
+                                                               value="{{ old("allowance_amount_{$allowanceType->id}", $allowanceType->default_amount) }}"
+                                                               min="0">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -304,7 +349,7 @@
                                 @error('allowance_types')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                 @enderror
-                                <small class="form-text text-muted">Pilih jenis tunjangan yang akan diberikan kepada guru ini.</small>
+                                <small class="form-text text-muted">Pilih jenis tunjangan yang akan diberikan kepada guru ini dengan tipe perhitungan dan nominal yang sesuai.</small>
                             </div>
                         </div>
                     </div>

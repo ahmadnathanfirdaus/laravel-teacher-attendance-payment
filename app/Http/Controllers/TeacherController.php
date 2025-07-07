@@ -27,7 +27,7 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $teachers = Teacher::with(['user', 'position', 'shifts', 'educationLevel'])
+        $teachers = Teacher::with(['user', 'shifts', 'educationLevel'])
             ->where('is_active', true)
             ->paginate(10);
         return view('teachers.index', compact('teachers'));
@@ -75,8 +75,10 @@ class TeacherController extends Controller
             'pendidikan_terakhir' => 'required|string|max:255',
             'mata_pelajaran' => 'required|string|max:255',
             'tanggal_masuk' => 'required|date',
-            'gaji_pokok' => 'required|numeric|min:0',
-            'position_id' => 'nullable|exists:positions,id',
+            'nominal' => 'required|numeric|min:0',
+            'salary_type' => 'required|in:per_hari,per_jam,per_bulan',
+            'positions' => 'required|array|min:1',
+            'positions.*' => 'exists:positions,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'working_days' => 'nullable|array',
@@ -114,8 +116,8 @@ class TeacherController extends Controller
             'pendidikan_terakhir' => $validated['pendidikan_terakhir'],
             'mata_pelajaran' => $validated['mata_pelajaran'],
             'tanggal_masuk' => $validated['tanggal_masuk'],
-            'gaji_pokok' => $validated['gaji_pokok'],
-            'position_id' => $validated['position_id'] ?? null,
+            'nominal' => $validated['nominal'],
+            'salary_type' => $validated['salary_type'],
             'education_level_id' => $validated['education_level_id'] ?? null,
             'photo_path' => $photoPath,
             'working_days' => $validated['working_days'] ?? null,
@@ -131,15 +133,31 @@ class TeacherController extends Controller
             ]);
         }
 
-        // Attach allowance types if provided
+        // Attach multiple positions if provided
+        if (isset($validated['positions']) && !empty($validated['positions'])) {
+            foreach ($validated['positions'] as $positionId) {
+                $teacher->positions()->attach($positionId, [
+                    'is_active' => true,
+                    'notes' => 'Initial assignment',
+                ]);
+            }
+        }
+
+        // Attach allowance types with calculation types if provided
         if (isset($validated['allowance_types']) && !empty($validated['allowance_types'])) {
             foreach ($validated['allowance_types'] as $allowanceTypeId) {
                 $allowanceType = AllowanceType::find($allowanceTypeId);
                 if ($allowanceType) {
+                    // Get custom calculation type and amount from request
+                    $calculationType = $request->input("allowance_calculation_{$allowanceTypeId}", $allowanceType->calculation_type ?? 'fixed');
+                    $customAmount = $request->input("allowance_amount_{$allowanceTypeId}", $allowanceType->default_amount);
+
                     $teacher->teacherAllowances()->create([
                         'allowance_type_id' => $allowanceTypeId,
-                        'amount' => $allowanceType->default_amount,
-                        'effective_date' => now(),
+                        'amount' => $customAmount,
+                        'calculation_type' => $calculationType,
+                        'effective_date' => $validated['tanggal_masuk'],
+                        'notes' => "Initial assignment - {$calculationType}",
                         'is_active' => true,
                     ]);
                 }
@@ -161,7 +179,7 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $teacher->load(['position', 'shifts', 'teacherAllowances.allowanceType', 'educationLevel']);
+        $teacher->load(['shifts', 'teacherAllowances.allowanceType', 'educationLevel']);
 
         return view('teachers.show', compact('teacher'));
     }
@@ -211,8 +229,10 @@ class TeacherController extends Controller
             'pendidikan_terakhir' => 'required|string|max:255',
             'mata_pelajaran' => 'required|string|max:255',
             'tanggal_masuk' => 'required|date',
-            'gaji_pokok' => 'required|numeric|min:0',
-            'position_id' => 'nullable|exists:positions,id',
+            'salary_type' => 'required|in:per_hari,per_jam,per_bulan',
+            'nominal' => 'required|numeric|min:0',
+            'positions' => 'required|array|min:1',
+            'positions.*' => 'exists:positions,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'working_days' => 'nullable|array',
@@ -220,6 +240,10 @@ class TeacherController extends Controller
             'shift_id' => 'nullable|exists:shifts,id',
             'allowance_types' => 'nullable|array',
             'allowance_types.*' => 'exists:allowance_types,id',
+            'allowance_calculation_types' => 'nullable|array',
+            'allowance_calculation_types.*' => 'in:fixed,per_hari,per_bulan',
+            'allowance_amounts' => 'nullable|array',
+            'allowance_amounts.*' => 'nullable|numeric|min:0',
         ]);
 
         // Handle photo upload
@@ -249,12 +273,15 @@ class TeacherController extends Controller
             'pendidikan_terakhir' => $validated['pendidikan_terakhir'],
             'mata_pelajaran' => $validated['mata_pelajaran'],
             'tanggal_masuk' => $validated['tanggal_masuk'],
-            'gaji_pokok' => $validated['gaji_pokok'],
-            'position_id' => $validated['position_id'] ?? null,
+            'salary_type' => $validated['salary_type'],
+            'nominal' => $validated['nominal'],
             'education_level_id' => $validated['education_level_id'] ?? null,
             'photo_path' => $photoPath,
             'working_days' => $validated['working_days'] ?? null,
         ]);
+
+        // Update positions
+        $teacher->positions()->sync($validated['positions']);
 
         // Update shift
         $teacher->shifts()->detach(); // Remove all existing shifts
@@ -266,18 +293,24 @@ class TeacherController extends Controller
             ]);
         }
 
-        // Update allowance types
+        // Update allowance types with enhanced calculation and amounts
         if (isset($validated['allowance_types'])) {
             // Remove existing allowances
             $teacher->teacherAllowances()->delete();
 
-            // Add new allowances
+            // Add new allowances with enhanced data
             foreach ($validated['allowance_types'] as $allowanceTypeId) {
                 $allowanceType = AllowanceType::find($allowanceTypeId);
                 if ($allowanceType) {
+                    $calculationType = $validated['allowance_calculation_types'][$allowanceTypeId] ?? $allowanceType->calculation_type ?? 'fixed';
+                    $customAmount = !empty($validated['allowance_amounts'][$allowanceTypeId])
+                        ? $validated['allowance_amounts'][$allowanceTypeId]
+                        : $allowanceType->default_amount;
+
                     $teacher->teacherAllowances()->create([
                         'allowance_type_id' => $allowanceTypeId,
-                        'amount' => $allowanceType->default_amount,
+                        'amount' => $customAmount,
+                        'calculation_type' => $calculationType,
                         'effective_date' => now(),
                         'is_active' => true,
                     ]);
@@ -308,5 +341,4 @@ class TeacherController extends Controller
 
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil dinonaktifkan.');
     }
-
 }

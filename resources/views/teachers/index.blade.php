@@ -60,8 +60,13 @@
                                             </a>
                                         </div>
                                         <div class="col-6">
-                                            <strong>Gaji Pokok:</strong><br>
-                                            <span class="text-success fw-bold">Rp {{ number_format($teacher->gaji_pokok, 0, ',', '.') }}</span>
+                                            <strong>Gaji:</strong><br>
+                                            <span class="text-success fw-bold">
+                                                Rp {{ number_format($teacher->nominal ?? $teacher->gaji_pokok, 0, ',', '.') }}
+                                                @if($teacher->salary_type)
+                                                    <small class="text-muted">({{ str_replace('_', ' ', $teacher->salary_type) }})</small>
+                                                @endif
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -99,7 +104,7 @@
                                         <th>Jenjang</th>
                                         <th>Mata Pelajaran</th>
                                         <th>No. Telepon</th>
-                                        <th>Gaji Pokok</th>
+                                        <th>Gaji</th>
                                         <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
@@ -118,7 +123,12 @@
                                         </td>
                                         <td>{{ $teacher->mata_pelajaran }}</td>
                                         <td>{{ $teacher->no_telepon }}</td>
-                                        <td>Rp {{ number_format($teacher->gaji_pokok, 0, ',', '.') }}</td>
+                                        <td>
+                                            Rp {{ number_format($teacher->nominal ?? $teacher->gaji_pokok, 0, ',', '.') }}
+                                            @if($teacher->salary_type)
+                                                <br><small class="text-muted">({{ str_replace('_', ' ', $teacher->salary_type) }})</small>
+                                            @endif
+                                        </td>
                                         <td>
                                             @if($teacher->is_active)
                                                 <span class="badge bg-success">Aktif</span>

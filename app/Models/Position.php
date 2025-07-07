@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Position extends Model
 {
@@ -20,19 +21,24 @@ class Position extends Model
     ];
 
     /**
-     * Get the teachers for this position.
+     * Get the teachers for this position (many-to-many relationship).
      */
-    public function teachers(): HasMany
+    public function teachers(): BelongsToMany
     {
-        return $this->hasMany(Teacher::class);
+        return $this->belongsToMany(Teacher::class, 'teacher_positions')
+                    ->withPivot([
+                        'is_active',
+                        'notes'
+                    ])
+                    ->withTimestamps();
     }
 
     /**
      * Get active teachers for this position.
      */
-    public function activeTeachers(): HasMany
+    public function activeTeachers(): BelongsToMany
     {
-        return $this->teachers()->where('is_active', true);
+        return $this->teachers()->wherePivot('is_active', true);
     }
 
     /**

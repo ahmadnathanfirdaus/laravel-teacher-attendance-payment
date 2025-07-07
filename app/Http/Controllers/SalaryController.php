@@ -106,22 +106,60 @@ class SalaryController extends Controller
                              ->count();
         $hariTidakHadir = $hariKerja - $hariHadir;
 
-        // Hitung total gaji
-        $gajiPokok = $teacher->position ? $teacher->position->base_salary : $teacher->gaji_pokok;
-        $gajiHarian = $gajiPokok / $hariKerja;
-        $totalGajiPokok = $gajiHarian * $hariHadir;
+        // Calculate salary based on salary type
+        $nominalGaji = $teacher->nominal ?? $teacher->gaji_pokok ?? 0;
+        $salaryType = $teacher->salary_type ?? 'per_bulan';
 
-        // Hitung total tunjangan dari berbagai jenis tunjangan yang aktif
-        $totalTunjangan = $teacher->teacherAllowances()
-                                 ->where('is_active', true)
-                                 ->sum('amount');
-
-        // Add position-based allowance
-        if ($teacher->position && $teacher->position->base_allowance > 0) {
-            $totalTunjangan += $teacher->position->base_allowance;
+        switch ($salaryType) {
+            case 'per_hari':
+                $gajiPokok = $nominalGaji * $hariHadir;
+                break;
+            case 'per_jam':
+                // For per_jam, we need to get working hours - for now use 8 hours per day
+                $jamKerja = $hariHadir * 8; // This could be enhanced to track actual hours
+                $gajiPokok = $nominalGaji * $jamKerja;
+                break;
+            case 'per_bulan':
+            default:
+                $gajiPokok = $nominalGaji; // Fixed monthly salary
+                break;
         }
 
-        $totalGaji = $totalGajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
+        // Calculate allowances with their calculation types
+        $totalTunjangan = 0;
+
+        foreach ($teacher->teacherAllowances()->where('is_active', true)->get() as $allowance) {
+            $calculationType = $allowance->calculation_type ?? 'fixed';
+            $allowanceAmount = 0;
+
+            switch ($calculationType) {
+                case 'per_hari':
+                    $allowanceAmount = $allowance->amount * $hariHadir;
+                    break;
+                case 'per_bulan':
+                    $allowanceAmount = $allowance->amount;
+                    break;
+                case 'fixed':
+                default:
+                    $allowanceAmount = $allowance->amount;
+                    break;
+            }
+
+            $totalTunjangan += $allowanceAmount;
+        }
+
+        // Add position-based allowances with their calculation types
+        if ($teacher->positions) {
+            foreach ($teacher->positions as $position) {
+                if ($position->base_allowance > 0) {
+                    // For now, position allowances are treated as fixed monthly
+                    // This could be enhanced to support different calculation types for positions
+                    $totalTunjangan += $position->base_allowance;
+                }
+            }
+        }
+
+        $totalGaji = $gajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
 
         Salary::create([
             'teacher_id' => $validated['teacher_id'],
@@ -190,11 +228,13 @@ class SalaryController extends Controller
             'keterangan' => 'nullable|string',
         ]);
 
-        // Recalculate total gaji
-        $totalGaji = ($salary->gaji_pokok / $salary->hari_kerja * $salary->hari_hadir)
-                   + $salary->tunjangan
-                   + ($validated['bonus'] ?? 0)
-                   - ($validated['potongan'] ?? 0);
+        // Recalculate total gaji based on the teacher's salary system
+        $teacher = $salary->teacher;
+        $salaryType = $teacher->salary_type ?? 'per_bulan';
+
+        // The gaji_pokok in the salary record should already be calculated correctly
+        // based on the salary type when it was created, so we just use it as is
+        $totalGaji = $salary->gaji_pokok + $salary->tunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
 
         $salary->update([
             'bonus' => $validated['bonus'] ?? 0,
@@ -294,59 +334,92 @@ class SalaryController extends Controller
                                  ->count();
             $hariTidakHadir = $hariKerja - $hariHadir;
 
-            // Calculate salary
-            $gajiPokok = 0;
-            if ($teacher->position && $teacher->position->base_salary > 0) {
-                $gajiPokok = $teacher->position->base_salary;
-            } elseif ($teacher->gaji_pokok > 0) {
-                $gajiPokok = $teacher->gaji_pokok;
-            }
+            // Calculate salary based on salary type
+            $nominalGaji = $teacher->nominal ?? $teacher->gaji_pokok ?? 0;
+            $salaryType = $teacher->salary_type ?? 'per_bulan';
 
-            if ($gajiPokok == 0) {
+            if ($nominalGaji == 0) {
                 // If no salary is set, skip this teacher
                 $skippedCount++;
                 continue;
             }
 
-            $gajiHarian = $gajiPokok / $hariKerja;
-            $totalGajiPokok = $gajiHarian * $hariHadir;
+            switch ($salaryType) {
+                case 'per_hari':
+                    $gajiPokok = $nominalGaji * $hariHadir;
+                    break;
+                case 'per_jam':
+                    // For per_jam, we need to get working hours - for now use 8 hours per day
+                    $jamKerja = $hariHadir * 8; // This could be enhanced to track actual hours
+                    $gajiPokok = $nominalGaji * $jamKerja;
+                    break;
+                case 'per_bulan':
+                default:
+                    $gajiPokok = $nominalGaji; // Fixed monthly salary
+                    break;
+            }
 
-            // Calculate total allowances with detailed breakdown
+            // Calculate allowances with their calculation types
             $totalTunjangan = 0;
-            $tunjanganDetails = [];            // Get all active allowances for this teacher
+            $tunjanganDetails = [];
+
+            // Get all active allowances for this teacher
             $teacherAllowances = $teacher->teacherAllowances()
                                          ->with('allowanceType')
                                          ->where('is_active', true)
                                          ->get();
 
             foreach ($teacherAllowances as $teacherAllowance) {
-                $allowanceAmount = $teacherAllowance->amount;
+                $calculationType = $teacherAllowance->calculation_type ?? 'fixed';
+                $allowanceAmount = 0;
+
+                switch ($calculationType) {
+                    case 'per_hari':
+                        $allowanceAmount = $teacherAllowance->amount * $hariHadir;
+                        break;
+                    case 'per_bulan':
+                        $allowanceAmount = $teacherAllowance->amount;
+                        break;
+                    case 'fixed':
+                    default:
+                        $allowanceAmount = $teacherAllowance->amount;
+                        break;
+                }
+
                 $totalTunjangan += $allowanceAmount;
                 $tunjanganDetails[] = [
                     'type' => $teacherAllowance->allowanceType->name,
-                    'amount' => $allowanceAmount
+                    'amount' => $allowanceAmount,
+                    'calculation' => $calculationType
                 ];
             }
 
-            // Add position-based allowance
-            if ($teacher->position && $teacher->position->base_allowance > 0) {
-                $positionAllowance = $teacher->position->base_allowance;
-                $totalTunjangan += $positionAllowance;
-                $tunjanganDetails[] = [
-                    'type' => 'Tunjangan Jabatan (' . $teacher->position->name . ')',
-                    'amount' => $positionAllowance
-                ];
+            // Add position-based allowances with their calculation types
+            if ($teacher->positions) {
+                foreach ($teacher->positions as $position) {
+                    if ($position->base_allowance > 0) {
+                        // For now, position allowances are treated as fixed monthly
+                        $positionAllowance = $position->base_allowance;
+                        $totalTunjangan += $positionAllowance;
+                        $tunjanganDetails[] = [
+                            'type' => 'Tunjangan Jabatan (' . $position->name . ')',
+                            'amount' => $positionAllowance,
+                            'calculation' => 'fixed'
+                        ];
+                    }
+                }
             }
 
-            $totalGaji = $totalGajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
+            $totalGaji = $gajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
 
-            // Prepare keterangan with allowance details
+            // Prepare keterangan with allowance details including calculation types
             $keteranganWithDetails = $validated['keterangan'] ?? '';
             if (!empty($tunjanganDetails)) {
                 $keteranganWithDetails .= (empty($keteranganWithDetails) ? '' : ' | ') . 'Tunjangan: ';
                 $allowanceList = [];
                 foreach ($tunjanganDetails as $detail) {
-                    $allowanceList[] = $detail['type'] . ' (Rp ' . number_format($detail['amount'], 0, ',', '.') . ')';
+                    $calcText = $detail['calculation'] == 'fixed' ? '' : ' (' . str_replace('_', ' ', $detail['calculation']) . ')';
+                    $allowanceList[] = $detail['type'] . $calcText . ' (Rp ' . number_format($detail['amount'], 0, ',', '.') . ')';
                 }
                 $keteranganWithDetails .= implode(', ', $allowanceList);
             }

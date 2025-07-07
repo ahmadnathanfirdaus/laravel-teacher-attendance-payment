@@ -31,29 +31,18 @@
                                     <td>{{ $position->name }}</td>
                                 </tr>
                                 <tr>
-                                    <th>Level:</th>
+                                    <th>Tunjangan:</th>
                                     <td>
-                                        <span class="badge badge-info">Level {{ $position->level }}</span>
-                                        @if($position->level == 1)
-                                            <small class="text-muted">(Terendah)</small>
-                                        @elseif($position->level == 5)
-                                            <small class="text-muted">(Tertinggi)</small>
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Gaji Pokok:</th>
-                                    <td>
-                                        <strong class="text-primary">Rp {{ number_format($position->base_salary, 0, ',', '.') }}</strong>
+                                        <strong class="text-primary">Rp {{ number_format($position->base_allowance, 0, ',', '.') }}</strong>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>Status:</th>
                                     <td>
                                         @if($position->is_active)
-                                            <span class="badge badge-success">Aktif</span>
+                                            <span class="badge bg-success">Aktif</span>
                                         @else
-                                            <span class="badge badge-danger">Nonaktif</span>
+                                            <span class="badge bg-danger">Nonaktif</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -112,14 +101,14 @@
                                                     @foreach($position->teachers as $teacher)
                                                         <tr>
                                                             <td>{{ $loop->iteration }}</td>
-                                                            <td>{{ $teacher->name }}</td>
+                                                            <td>{{ $teacher->user->name }}</td>
                                                             <td>{{ $teacher->nip }}</td>
-                                                            <td>{{ $teacher->email }}</td>
+                                                            <td>{{ $teacher->user->email }}</td>
                                                             <td>
                                                                 @if($teacher->is_active)
-                                                                    <span class="badge badge-success">Aktif</span>
+                                                                    <span class="badge bg-success">Aktif</span>
                                                                 @else
-                                                                    <span class="badge badge-danger">Nonaktif</span>
+                                                                    <span class="badge bg-danger">Nonaktif</span>
                                                                 @endif
                                                             </td>
                                                             <td>{{ $teacher->created_at->format('d/m/Y') }}</td>

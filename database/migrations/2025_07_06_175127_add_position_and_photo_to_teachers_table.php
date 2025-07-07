@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('teachers', function (Blueprint $table) {
-            $table->foreignId('position_id')->nullable()->constrained()->onDelete('set null');
             $table->string('photo_path')->nullable(); // Path file foto guru
             $table->json('working_days')->nullable(); // Hari kerja guru (JSON array)
         });
@@ -24,8 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('teachers', function (Blueprint $table) {
-            $table->dropForeign(['position_id']);
-            $table->dropColumn(['position_id', 'photo_path', 'working_days']);
+
         });
     }
 };
