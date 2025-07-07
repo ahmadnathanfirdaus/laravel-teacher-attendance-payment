@@ -12,20 +12,65 @@
             min-height: 100vh;
             display: flex;
             align-items: center;
+            padding: 20px 0;
         }
         .login-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 576px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .login-card {
+                margin: 10px 0;
+                border-radius: 12px;
+            }
+
+            .form-control, .form-select {
+                font-size: 16px; /* Prevents zoom on iOS */
+                min-height: 48px;
+                border-radius: 8px;
+            }
+
+            .input-group-text {
+                min-height: 48px;
+                border-radius: 8px 0 0 8px;
+            }
+
+            .btn {
+                min-height: 48px;
+                font-size: 16px;
+                font-weight: 500;
+                border-radius: 8px;
+            }
+
+            .alert {
+                border-radius: 8px;
+                font-size: 0.9rem;
+            }
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="login-card p-5">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+                <div class="login-card p-4 p-sm-5">
                     <div class="text-center mb-4">
                         <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
                         <h2 class="fw-bold">YAKIIN</h2>
@@ -43,7 +88,7 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label fw-medium">Email</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-envelope"></i>
@@ -57,7 +102,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label fw-medium">Password</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-lock"></i>
@@ -70,7 +115,7 @@
                             </div>
                         </div>
 
-                        <div class="mb-3 form-check">
+                        <div class="mb-4 form-check">
                             <input type="checkbox" class="form-check-input" id="remember" name="remember">
                             <label class="form-check-label" for="remember">
                                 Ingat saya

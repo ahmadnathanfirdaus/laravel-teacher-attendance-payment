@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-12">
         <h1 class="h3 mb-3">Absensi Mandiri</h1>
-        <p class="text-muted mb-4">Selamat datang, {{ $teacher->nama_lengkap ?? 'Guru' }}</p>
+        <p class="text-muted mb-4">Selamat datang, {{ $teacher->nama_lengkap }}</p>
     </div>
 </div>
 
@@ -176,7 +176,7 @@
                 </a>
             </div>
             <div class="card-body">
-                @if(isset($recentAttendances) && $recentAttendances->count() > 0)
+                @if($recentAttendances->count() > 0)
                     <!-- Mobile Card View -->
                     <div class="d-md-none">
                         @foreach($recentAttendances as $attendance)

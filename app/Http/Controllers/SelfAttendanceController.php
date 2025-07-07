@@ -34,7 +34,62 @@ class SelfAttendanceController extends Controller
                                    ->whereDate('tanggal', today())
                                    ->first();
 
-        return view('self-attendance.index', compact('teacher', 'todayAttendance'));
+        // Get weekly attendances (current week)
+        $weekStart = Carbon::now()->startOfWeek();
+        $weekEnd = Carbon::now()->endOfWeek();
+        $weeklyAttendances = Attendance::where('teacher_id', $teacher->id)
+                                      ->whereBetween('tanggal', [$weekStart, $weekEnd])
+                                      ->get();
+
+        // Get monthly attendances (current month)
+        $monthStart = Carbon::now()->startOfMonth();
+        $monthEnd = Carbon::now()->endOfMonth();
+        $monthlyAttendances = Attendance::where('teacher_id', $teacher->id)
+                                       ->whereBetween('tanggal', [$monthStart, $monthEnd])
+                                       ->get();
+
+        // Calculate average working hours
+        $totalWorkingMinutes = 0;
+        $daysWithBothTimes = 0;
+
+        foreach ($monthlyAttendances as $attendance) {
+            if ($attendance->jam_masuk && $attendance->jam_keluar) {
+                try {
+                    // Parse time values (handles both "H:i:s" and "H:i" formats)
+                    $jamMasuk = Carbon::parse("2000-01-01 " . $attendance->jam_masuk);
+                    $jamKeluar = Carbon::parse("2000-01-01 " . $attendance->jam_keluar);
+
+                    $totalWorkingMinutes += $jamKeluar->diffInMinutes($jamMasuk);
+                    $daysWithBothTimes++;
+                } catch (\Exception $e) {
+                    // Skip this record if there's a parsing error
+                    continue;
+                }
+            }
+        }
+
+        $averageWorkingHours = $daysWithBothTimes > 0 ? round($totalWorkingMinutes / $daysWithBothTimes / 60, 1) : 0;
+
+        // Calculate attendance rate for this month
+        $totalWorkingDays = Carbon::now()->day; // Days passed in current month
+        $attendedDays = $monthlyAttendances->where('status', 'hadir')->count() + $monthlyAttendances->where('status', 'terlambat')->count();
+        $attendanceRate = $totalWorkingDays > 0 ? round(($attendedDays / $totalWorkingDays) * 100) : 0;
+
+        // Get recent attendances (last 5)
+        $recentAttendances = Attendance::where('teacher_id', $teacher->id)
+                                     ->orderBy('tanggal', 'desc')
+                                     ->limit(5)
+                                     ->get();
+
+        return view('self-attendance.index', compact(
+            'teacher',
+            'todayAttendance',
+            'weeklyAttendances',
+            'monthlyAttendances',
+            'averageWorkingHours',
+            'attendanceRate',
+            'recentAttendances'
+        ));
     }
 
     /**

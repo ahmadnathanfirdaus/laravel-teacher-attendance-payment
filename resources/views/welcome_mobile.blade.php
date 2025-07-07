@@ -184,15 +184,15 @@
             .hero-title {
                 font-size: 2.5rem;
             }
-            
+
             .hero-subtitle {
                 font-size: 1.2rem;
             }
-            
+
             .hero-description {
                 font-size: 1rem;
             }
-            
+
             .btn-hero {
                 padding: 0.8rem 1.5rem;
                 font-size: 1rem;
@@ -200,15 +200,15 @@
                 margin: 0.5rem auto;
                 max-width: 250px;
             }
-            
+
             .hero-content {
                 padding: 1rem;
             }
-            
+
             .feature-card {
                 padding: 1.5rem;
             }
-            
+
             .feature-icon {
                 font-size: 2.5rem;
             }
@@ -218,16 +218,16 @@
             .hero-title {
                 font-size: 2rem;
             }
-            
+
             .hero-subtitle {
                 font-size: 1.1rem;
             }
-            
+
             .btn-hero {
                 padding: 0.7rem 1.2rem;
                 font-size: 0.9rem;
             }
-            
+
             .features-section {
                 padding: 3rem 0;
             }
@@ -263,7 +263,7 @@
             <div class="shape"></div>
             <div class="shape"></div>
         </div>
-        
+
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
@@ -274,7 +274,7 @@
                         <h1 class="hero-title loading">YAKIIN</h1>
                         <p class="hero-subtitle loading">Teacher Payment System</p>
                         <p class="hero-description loading">
-                            Sistem manajemen pembayaran guru yang modern, efisien, dan mudah digunakan. 
+                            Sistem manajemen pembayaran guru yang modern, efisien, dan mudah digunakan.
                             Kelola data guru, absensi, dan penggajian dengan satu platform terintegrasi.
                         </p>
                         <div class="loading">
@@ -313,7 +313,7 @@
                     <p class="lead text-muted">Solusi lengkap untuk manajemen guru dan pembayaran</p>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
@@ -326,7 +326,7 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -338,7 +338,7 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -350,7 +350,7 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-3">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -363,7 +363,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="row mt-5">
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
@@ -376,7 +376,7 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -388,7 +388,7 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 col-lg-4">
                     <div class="feature-card">
                         <div class="feature-icon">

@@ -26,10 +26,8 @@ class Attendance extends Model
 
     protected $casts = [
         'tanggal' => 'date',
-        'jam_masuk' => 'datetime:H:i',
-        'jam_keluar' => 'datetime:H:i',
-        'expected_time_in' => 'datetime:H:i',
-        'expected_time_out' => 'datetime:H:i',
+        'is_late' => 'boolean',
+        'is_early_leave' => 'boolean',
         'is_late' => 'boolean',
         'is_early_leave' => 'boolean',
     ];
