@@ -7,6 +7,7 @@ use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class SelfAttendanceController extends Controller
@@ -97,26 +98,27 @@ class SelfAttendanceController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
+        try {
+            $user = Auth::user();
 
-        // Only teachers can access this
-        if ($user->role !== 'guru') {
-            abort(403, 'Unauthorized access.');
-        }
+            // Only teachers can access this
+            if ($user->role !== 'guru') {
+                return response()->json(['error' => 'Unauthorized access.'], 403);
+            }
 
-        $teacher = $user->teacher;
+            $teacher = $user->teacher;
 
-        if (!$teacher) {
-            return response()->json(['error' => 'Data guru tidak ditemukan.'], 404);
-        }
+            if (!$teacher) {
+                return response()->json(['error' => 'Data guru tidak ditemukan.'], 404);
+            }
 
-        $request->validate([
-            'type' => 'required|in:masuk,keluar',
-            'photo' => 'required|string', // Base64 encoded image
-        ]);
+            $request->validate([
+                'type' => 'required|in:masuk,keluar',
+                'photo' => 'required|string', // Base64 encoded image
+            ]);
 
-        $today = today();
-        $currentTime = now();
+            $today = today();
+            $currentTime = now();
 
         // Check if already have attendance today
         $attendance = Attendance::where('teacher_id', $teacher->id)
@@ -216,6 +218,12 @@ class SelfAttendanceController extends Controller
                 'message' => 'Absen keluar berhasil dicatat.',
                 'time' => $currentTime->format('H:i'),
             ]);
+        }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['error' => 'Data tidak valid: ' . implode(', ', $e->validator->errors()->all())], 422);
+        } catch (\Exception $e) {
+            Log::error('Self attendance error: ' . $e->getMessage());
+            return response()->json(['error' => 'Terjadi kesalahan sistem. Silakan coba lagi.'], 500);
         }
     }
 

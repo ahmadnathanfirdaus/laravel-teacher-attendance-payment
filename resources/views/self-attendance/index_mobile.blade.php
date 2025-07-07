@@ -338,33 +338,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const context = canvas.getContext('2d');
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Convert to blob
-        canvas.toBlob(function(blob) {
-            const formData = new FormData();
-            formData.append('photo', blob, 'attendance.jpg');
-            formData.append('action', action);
-            formData.append('_token', '{{ csrf_token() }}');
+        // Convert to base64
+        const photoData = canvas.toDataURL('image/jpeg', 0.8);
 
-            fetch('{{ route("self-attendance.store") }}', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                loadingModal.hide();
-                if (data.success) {
-                    alert(data.message);
-                    location.reload();
-                } else {
-                    alert(data.message || 'Terjadi kesalahan');
-                }
-            })
-            .catch(error => {
-                loadingModal.hide();
-                console.error('Error:', error);
-                alert('Terjadi kesalahan saat memproses absensi');
-            });
-        }, 'image/jpeg', 0.8);
+        // Map action to type
+        const type = action === 'clock-in' ? 'masuk' : 'keluar';
+
+        // Prepare data
+        const data = {
+            type: type,
+            photo: photoData,
+            _token: '{{ csrf_token() }}'
+        };
+
+        fetch('{{ route("self-attendance.store") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingModal.hide();
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.error || data.message || 'Terjadi kesalahan');
+            }
+        })
+        .catch(error => {
+            loadingModal.hide();
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat memproses absensi');
+        });
     }
 
     // Handle page visibility changes (mobile optimization)
