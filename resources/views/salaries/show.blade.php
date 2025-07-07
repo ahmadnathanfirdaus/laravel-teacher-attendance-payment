@@ -35,7 +35,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <strong>Nama Guru:</strong>
-                            <p class="mb-0">{{ $salary->teacher->nama_lengkap }}</p>
+                            <p class="mb-0">{{ $salary->teacher->user->name }}</p>
                         </div>
                         <div class="mb-3">
                             <strong>NIP:</strong>

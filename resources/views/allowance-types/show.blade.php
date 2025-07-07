@@ -107,7 +107,7 @@
                                                     @foreach($allowanceType->teacherAllowances as $teacherAllowance)
                                                         <tr>
                                                             <td>{{ $loop->iteration }}</td>
-                                                            <td>{{ $teacherAllowance->teacher->nama_lengkap }}</td>
+                                                            <td>{{ $teacherAllowance->teacher->user->name }}</td>
                                                             <td>{{ $teacherAllowance->teacher->nip }}</td>
                                                             <td>
                                                                 <strong>Rp {{ number_format($teacherAllowance->amount, 0, ',', '.') }}</strong>

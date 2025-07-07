@@ -30,7 +30,7 @@
                                 <option value="">Semua Guru</option>
                                 @foreach($teachers as $teacher)
                                     <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                        {{ $teacher->nama_lengkap }}
+                                        {{ $teacher->user->name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -93,7 +93,7 @@
                                 <div class="row">
                                     <div class="col-8">
                                         @if(auth()->user()->role !== 'guru')
-                                            <h6 class="card-title mb-1">{{ $attendance->teacher->nama_lengkap }}</h6>
+                                            <h6 class="card-title mb-1">{{ $attendance->teacher->user->name }}</h6>
                                         @else
                                             <h6 class="card-title mb-1">Absensi</h6>
                                         @endif
@@ -183,7 +183,7 @@
                                     @foreach($attendances as $attendance)
                                     <tr>
                                         @if(auth()->user()->role !== 'guru')
-                                            <td>{{ $attendance->teacher->nama_lengkap }}</td>
+                                            <td>{{ $attendance->teacher->user->name }}</td>
                                         @endif
                                         <td>{{ $attendance->tanggal->format('d/m/Y') }}</td>
                                         <td>{{ $attendance->jam_masuk ?? '-' }}</td>

@@ -74,7 +74,7 @@
                                     <option value="">Semua Guru</option>
                                     @foreach($teachers as $teacher)
                                         <option value="{{ $teacher->id }}" {{ request('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                            {{ $teacher->nama_lengkap }}
+                                            {{ $teacher->user->name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -138,7 +138,7 @@
                                 @foreach($salaries as $salary)
                                 <tr>
                                     @if(auth()->user()->role !== 'guru')
-                                        <td>{{ $salary->teacher->nama_lengkap }}</td>
+                                        <td>{{ $salary->teacher->user->name }}</td>
                                     @endif
                                     <td>{{ $salary->bulan }} {{ $salary->tahun }}</td>
                                     <td>Rp {{ number_format($salary->gaji_pokok, 0, ',', '.') }}</td>
