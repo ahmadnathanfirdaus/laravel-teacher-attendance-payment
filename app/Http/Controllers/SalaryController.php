@@ -101,16 +101,29 @@ class SalaryController extends Controller
         $hariTidakHadir = $hariKerja - $hariHadir;
 
         // Hitung total gaji
-        $gajiHarian = $teacher->gaji_pokok / $hariKerja;
+        $gajiPokok = $teacher->position ? $teacher->position->base_salary : $teacher->gaji_pokok;
+        $gajiHarian = $gajiPokok / $hariKerja;
         $totalGajiPokok = $gajiHarian * $hariHadir;
-        $totalGaji = $totalGajiPokok + $teacher->tunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
+
+        // Hitung total tunjangan dari berbagai jenis tunjangan yang aktif
+        $totalTunjangan = $teacher->teacherAllowances()
+                                 ->where('is_active', true)
+                                 ->where('effective_date', '<=', Carbon::create($validated['tahun'], $validated['bulan'], 1))
+                                 ->sum('amount');
+
+        // Fallback ke tunjangan lama jika tidak ada tunjangan baru
+        if ($totalTunjangan == 0) {
+            $totalTunjangan = $teacher->tunjangan ?? 0;
+        }
+
+        $totalGaji = $totalGajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
 
         Salary::create([
             'teacher_id' => $validated['teacher_id'],
             'bulan' => $validated['bulan'],
             'tahun' => $validated['tahun'],
-            'gaji_pokok' => $teacher->gaji_pokok,
-            'tunjangan' => $teacher->tunjangan,
+            'gaji_pokok' => $gajiPokok,
+            'tunjangan' => $totalTunjangan,
             'bonus' => $validated['bonus'] ?? 0,
             'potongan' => $validated['potongan'] ?? 0,
             'hari_kerja' => $hariKerja,

@@ -81,8 +81,20 @@ class AttendanceController extends Controller
             'jam_masuk' => 'nullable|date_format:H:i',
             'jam_keluar' => 'nullable|date_format:H:i',
             'status' => 'required|in:hadir,tidak_hadir,terlambat,izin,sakit',
+            'shift_id' => 'nullable|exists:shifts,id',
             'keterangan' => 'nullable|string',
         ]);
+
+        // Validate shift if teacher has assigned shifts
+        $teacher = Teacher::find($validated['teacher_id']);
+        if ($teacher->shifts->count() > 0 && !$validated['shift_id']) {
+            return redirect()->back()->withErrors(['shift_id' => 'Shift harus dipilih untuk guru yang memiliki shift.'])->withInput();
+        }
+
+        // Validate if selected shift is assigned to the teacher
+        if ($validated['shift_id'] && !$teacher->shifts->contains($validated['shift_id'])) {
+            return redirect()->back()->withErrors(['shift_id' => 'Shift yang dipilih tidak sesuai dengan shift guru.'])->withInput();
+        }
 
         Attendance::create($validated);
 

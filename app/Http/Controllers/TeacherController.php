@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Teacher;
 use App\Models\User;
+use App\Models\Position;
+use App\Models\Shift;
+use App\Models\EducationLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
 {
@@ -21,7 +25,9 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $teachers = Teacher::with('user')->where('is_active', true)->paginate(10);
+        $teachers = Teacher::with(['user', 'position', 'shifts', 'educationLevel'])
+            ->where('is_active', true)
+            ->paginate(10);
         return view('teachers.index', compact('teachers'));
     }
 
@@ -36,7 +42,11 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        return view('teachers.create');
+        $positions = Position::active()->get();
+        $shifts = Shift::active()->get();
+        $educationLevels = EducationLevel::active()->get();
+
+        return view('teachers.create', compact('positions', 'shifts', 'educationLevels'));
     }
 
     /**
@@ -65,7 +75,20 @@ class TeacherController extends Controller
             'tanggal_masuk' => 'required|date',
             'gaji_pokok' => 'required|numeric|min:0',
             'tunjangan' => 'nullable|numeric|min:0',
+            'position_id' => 'nullable|exists:positions,id',
+            'education_level_id' => 'nullable|exists:education_levels,id',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'working_days' => 'nullable|array',
+            'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+            'shifts' => 'nullable|array',
+            'shifts.*' => 'exists:shifts,id',
         ]);
+
+        // Handle photo upload
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('teacher-photos', 'public');
+        }
 
         // Create user account for teacher
         $newUser = User::create([
@@ -77,7 +100,7 @@ class TeacherController extends Controller
         ]);
 
         // Create teacher record
-        Teacher::create([
+        $teacher = Teacher::create([
             'user_id' => $newUser->id,
             'nip' => $validated['nip'],
             'nama_lengkap' => $validated['nama_lengkap'],
@@ -91,8 +114,23 @@ class TeacherController extends Controller
             'tanggal_masuk' => $validated['tanggal_masuk'],
             'gaji_pokok' => $validated['gaji_pokok'],
             'tunjangan' => $validated['tunjangan'] ?? 0,
+            'position_id' => $validated['position_id'] ?? null,
+            'education_level_id' => $validated['education_level_id'] ?? null,
+            'photo_path' => $photoPath,
+            'working_days' => $validated['working_days'] ?? null,
             'is_active' => true,
         ]);
+
+        // Attach shifts if provided
+        if (isset($validated['shifts']) && !empty($validated['shifts'])) {
+            foreach ($validated['shifts'] as $shiftId) {
+                $teacher->shifts()->attach($shiftId, [
+                    'days' => implode(',', $validated['working_days'] ?? []),
+                    'effective_date' => $validated['tanggal_masuk'],
+                    'is_active' => true,
+                ]);
+            }
+        }
 
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil ditambahkan.');
     }
@@ -109,6 +147,8 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
+        $teacher->load(['position', 'shifts', 'teacherAllowances.allowanceType', 'educationLevel']);
+
         return view('teachers.show', compact('teacher'));
     }
 
@@ -123,7 +163,11 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        return view('teachers.edit', compact('teacher'));
+        $positions = Position::active()->get();
+        $shifts = Shift::active()->get();
+        $educationLevels = EducationLevel::active()->get();
+
+        return view('teachers.edit', compact('teacher', 'positions', 'shifts', 'educationLevels'));
     }
 
     /**
@@ -152,7 +196,24 @@ class TeacherController extends Controller
             'tanggal_masuk' => 'required|date',
             'gaji_pokok' => 'required|numeric|min:0',
             'tunjangan' => 'nullable|numeric|min:0',
+            'position_id' => 'nullable|exists:positions,id',
+            'education_level_id' => 'nullable|exists:education_levels,id',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'working_days' => 'nullable|array',
+            'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+            'shifts' => 'nullable|array',
+            'shifts.*' => 'exists:shifts,id',
         ]);
+
+        // Handle photo upload
+        $photoPath = $teacher->photo_path;
+        if ($request->hasFile('photo')) {
+            // Delete old photo
+            if ($teacher->photo_path) {
+                Storage::disk('public')->delete($teacher->photo_path);
+            }
+            $photoPath = $request->file('photo')->store('teacher-photos', 'public');
+        }
 
         // Update user
         $teacher->user->update([
@@ -174,7 +235,23 @@ class TeacherController extends Controller
             'tanggal_masuk' => $validated['tanggal_masuk'],
             'gaji_pokok' => $validated['gaji_pokok'],
             'tunjangan' => $validated['tunjangan'] ?? 0,
+            'position_id' => $validated['position_id'] ?? null,
+            'education_level_id' => $validated['education_level_id'] ?? null,
+            'photo_path' => $photoPath,
+            'working_days' => $validated['working_days'] ?? null,
         ]);
+
+        // Update shifts
+        $teacher->shifts()->detach(); // Remove all existing shifts
+        if (isset($validated['shifts']) && !empty($validated['shifts'])) {
+            foreach ($validated['shifts'] as $shiftId) {
+                $teacher->shifts()->attach($shiftId, [
+                    'days' => implode(',', $validated['working_days'] ?? []),
+                    'effective_date' => now(),
+                    'is_active' => true,
+                ]);
+            }
+        }
 
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil diperbarui.');
     }
@@ -195,5 +272,77 @@ class TeacherController extends Controller
         $teacher->user->update(['is_active' => false]);
 
         return redirect()->route('teachers.index')->with('success', 'Data guru berhasil dinonaktifkan.');
+    }
+
+    /**
+     * Show teacher shifts management.
+     */
+    public function shifts(Teacher $teacher)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $teacher->load('shifts');
+        $availableShifts = Shift::active()->get();
+
+        return view('teachers.shifts', compact('teacher', 'availableShifts'));
+    }
+
+    /**
+     * Update teacher shifts.
+     */
+    public function updateShifts(Request $request, Teacher $teacher)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $validated = $request->validate([
+            'shifts' => 'nullable|array',
+            'shifts.*' => 'exists:shifts,id',
+            'working_days' => 'nullable|array',
+            'working_days.*' => 'in:senin,selasa,rabu,kamis,jumat,sabtu,minggu',
+        ]);
+
+        // Update teacher shifts
+        $teacher->shifts()->detach(); // Remove all existing shifts
+        if (isset($validated['shifts']) && !empty($validated['shifts'])) {
+            foreach ($validated['shifts'] as $shiftId) {
+                $teacher->shifts()->attach($shiftId, [
+                    'days' => implode(',', $validated['working_days'] ?? []),
+                    'effective_date' => now(),
+                    'is_active' => true,
+                ]);
+            }
+        }
+
+        // Update working days
+        $teacher->update([
+            'working_days' => $validated['working_days'] ?? null,
+        ]);
+
+        return redirect()->route('teachers.shifts', $teacher)
+            ->with('success', 'Shift guru berhasil diperbarui.');
+    }
+
+    /**
+     * Show teacher allowances management.
+     */
+    public function allowances(Teacher $teacher)
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'admin') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $teacher->load('teacherAllowances.allowanceType');
+
+        return view('teachers.allowances', compact('teacher'));
     }
 }

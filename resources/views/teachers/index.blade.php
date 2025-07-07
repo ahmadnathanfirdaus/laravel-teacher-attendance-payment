@@ -27,6 +27,7 @@
                                 <tr>
                                     <th>NIP</th>
                                     <th>Nama Lengkap</th>
+                                    <th>Jenjang</th>
                                     <th>Mata Pelajaran</th>
                                     <th>No. Telepon</th>
                                     <th>Gaji Pokok</th>
@@ -39,6 +40,13 @@
                                 <tr>
                                     <td>{{ $teacher->nip }}</td>
                                     <td>{{ $teacher->nama_lengkap }}</td>
+                                    <td>
+                                        @if($teacher->educationLevel)
+                                            <span class="badge bg-info">{{ $teacher->educationLevel->name }}</span>
+                                        @else
+                                            <span class="badge bg-secondary">-</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $teacher->mata_pelajaran }}</td>
                                     <td>{{ $teacher->no_telepon }}</td>
                                     <td>Rp {{ number_format($teacher->gaji_pokok, 0, ',', '.') }}</td>

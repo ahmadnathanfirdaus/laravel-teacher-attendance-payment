@@ -13,12 +13,18 @@
         }
         .sidebar .nav-link {
             color: #fff;
+            transition: all 0.3s ease;
         }
         .sidebar .nav-link:hover {
             background-color: #495057;
+            color: #fff;
         }
         .sidebar .nav-link.active {
             background-color: #007bff;
+        }
+        .sidebar .collapse .nav-link {
+            font-size: 0.9rem;
+            padding-left: 2rem;
         }
         .main-content {
             margin-left: 0;
@@ -27,6 +33,17 @@
             .main-content {
                 margin-left: 250px;
             }
+        }
+        /* Custom scrollbar for sidebar */
+        .sidebar {
+            overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #495057;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -53,6 +70,51 @@
                         <i class="fas fa-users me-2"></i>
                         Data Guru
                     </a>
+                </li>
+                @endif
+
+                @if(auth()->user()->role === 'admin')
+                <!-- Admin Only Menu -->
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="collapse" data-bs-target="#managementMenu" aria-expanded="false">
+                        <i class="fas fa-cogs me-2"></i>
+                        Manajemen
+                        <i class="fas fa-chevron-down float-end"></i>
+                    </a>
+                    <div class="collapse" id="managementMenu">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('shifts.index') }}">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Shift Kerja
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('positions.index') }}">
+                                    <i class="fas fa-briefcase me-2"></i>
+                                    Jabatan
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('allowance-types.index') }}">
+                                    <i class="fas fa-tags me-2"></i>
+                                    Jenis Tunjangan
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('teacher-allowances.index') }}">
+                                    <i class="fas fa-hand-holding-usd me-2"></i>
+                                    Tunjangan Guru
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('education-levels.index') }}">
+                                    <i class="fas fa-graduation-cap me-2"></i>
+                                    Jenjang Pendidikan
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 @endif
 

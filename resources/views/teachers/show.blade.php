@@ -15,6 +15,55 @@
 </div>
 
 <div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Foto Profil</h5>
+            </div>
+            <div class="card-body text-center">
+                @if($teacher->photo_path)
+                    <img src="{{ asset('storage/' . $teacher->photo_path) }}" alt="Foto Profil" class="img-fluid rounded-circle" style="max-width: 200px;">
+                @else
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 200px; height: 200px;">
+                        <i class="fas fa-user fa-4x text-muted"></i>
+                    </div>
+                    <p class="text-muted mt-2">Tidak ada foto</p>
+                @endif
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Jabatan & Status</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Jabatan:</strong></td>
+                        <td>
+                            @if($teacher->position)
+                                {{ $teacher->position->name }}
+                                <br><small class="text-muted">Level {{ $teacher->position->level }}</small>
+                            @else
+                                <span class="text-muted">Belum ditentukan</span>
+                            @endif
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            @if($teacher->is_active)
+                                <span class="badge bg-success">Aktif</span>
+                            @else
+                                <span class="badge bg-danger">Tidak Aktif</span>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
@@ -49,6 +98,17 @@
                     <tr>
                         <td><strong>Pendidikan Terakhir:</strong></td>
                         <td>{{ $teacher->pendidikan_terakhir }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Jenjang Pendidikan:</strong></td>
+                        <td>
+                            @if($teacher->educationLevel)
+                                <span class="badge bg-info">{{ $teacher->educationLevel->name }}</span>
+                                <br><small class="text-muted">{{ $teacher->educationLevel->full_name }}</small>
+                            @else
+                                <span class="text-muted">Belum ditentukan</span>
+                            @endif
+                        </td>
                     </tr>
                     <tr>
                         <td><strong>Mata Pelajaran:</strong></td>
@@ -95,6 +155,81 @@
                 </table>
             </div>
         </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Shift & Hari Kerja</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Shift Mengajar:</strong>
+                        @if($teacher->shifts->count() > 0)
+                            <ul class="list-unstyled mt-2">
+                                @foreach($teacher->shifts as $shift)
+                                    <li>
+                                        <span class="badge bg-primary">{{ $shift->name }}</span>
+                                        <br><small class="text-muted">{{ $shift->start_time }} - {{ $shift->end_time }}</small>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted">Belum ada shift</p>
+                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Hari Kerja:</strong>
+                        @if($teacher->working_days)
+                            <div class="mt-2">
+                                @foreach($teacher->working_days as $day)
+                                    <span class="badge bg-secondary me-1">{{ ucfirst($day) }}</span>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted">Belum ditentukan</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if($teacher->teacherAllowances->count() > 0)
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Tunjangan Aktif</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Jenis Tunjangan</th>
+                                <th>Jumlah</th>
+                                <th>Status</th>
+                                <th>Berlaku Mulai</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($teacher->teacherAllowances as $allowance)
+                                <tr>
+                                    <td>{{ $allowance->allowanceType->name }}</td>
+                                    <td>Rp {{ number_format($allowance->amount, 0, ',', '.') }}</td>
+                                    <td>
+                                        @if($allowance->is_active)
+                                            <span class="badge bg-success">Aktif</span>
+                                        @else
+                                            <span class="badge bg-danger">Nonaktif</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $allowance->effective_date ? $allowance->effective_date->format('d/m/Y') : '-' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <div class="card mt-4">
             <div class="card-header">

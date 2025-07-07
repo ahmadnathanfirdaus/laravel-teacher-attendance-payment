@@ -36,12 +36,39 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 #### 👨‍🏫 **Manajemen Data Guru**
 - ✅ CRUD lengkap untuk data guru (hanya Admin)
 - ✅ Data lengkap: NIP, nama, alamat, mata pelajaran, gaji pokok
+- ✅ **Upload foto profil guru**
+- ✅ **Manajemen jabatan guru (Kepala Sekolah, Wakil, Guru Kelas, dll)**
+- ✅ **Pengaturan jam kerja (shift) untuk setiap guru**
+- ✅ **Sistem tunjangan multi-jenis untuk guru**
 - ✅ Soft delete (nonaktifkan guru)
 - ✅ Validasi data yang komprehensif
 
-#### 📅 **Manajemen Absensi**
+#### ⏰ **Manajemen Shift/Jam Kerja** (Fitur Baru)
+- ✅ **CRUD shift kerja** (Pagi, Siang, Sore, Penuh)
+- ✅ **Pengaturan jam mulai dan selesai shift**
+- ✅ **Assignment shift ke guru** (many-to-many relationship)
+- ✅ **Pengaturan hari kerja per guru** (Senin-Minggu)
+- ✅ **Validasi absensi sesuai shift yang ditugaskan**
+
+#### � **Manajemen Jabatan** (Fitur Baru)
+- ✅ **CRUD jabatan** (Kepala Sekolah, Wakil, Guru Kelas, Staff TU, dll)
+- ✅ **Tunjangan dasar per jabatan**
+- ✅ **Assignment jabatan ke guru**
+- ✅ **Laporan guru per jabatan**
+
+#### 💰 **Sistem Tunjangan Multi-Jenis** (Fitur Baru)
+- ✅ **CRUD jenis tunjangan** (Transportasi, Makan, Komunikasi, Kinerja, dll)
+- ✅ **Nominal default per jenis tunjangan**
+- ✅ **Assignment multiple tunjangan per guru**
+- ✅ **Periode berlaku tunjangan** (tanggal mulai & berakhir)
+- ✅ **Perhitungan otomatis total tunjangan**
+
+#### �📅 **Manajemen Absensi**
 - ✅ Input absensi guru (Admin/Bendahara)
 - ✅ Status absensi: Hadir, Tidak Hadir, Terlambat, Izin, Sakit
+- ✅ **Validasi absensi sesuai shift yang ditugaskan**
+- ✅ **Perhitungan keterlambatan otomatis**
+- ✅ **Tracking jam masuk/keluar sesuai shift**
 - ✅ Filter berdasarkan guru, bulan, dan tahun
 - ✅ Guru hanya bisa melihat absensi sendiri
 
@@ -49,13 +76,14 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 - ✅ Akses kamera web untuk absensi real-time
 - ✅ Absen masuk & keluar dengan foto bukti
 - ✅ Deteksi lokasi GPS otomatis
-- ✅ Status otomatis (Hadir/Terlambat berdasarkan jam)
+- ✅ **Validasi jam absensi sesuai shift guru**
+- ✅ Status otomatis (Hadir/Terlambat berdasarkan shift)
 - ✅ Validasi waktu dan urutan absensi
 - ✅ Mobile-responsive untuk smartphone
 
 #### 💰 **Manajemen Gaji**
 - ✅ Generate gaji otomatis berdasarkan absensi
-- ✅ Perhitungan: Gaji Pokok + Tunjangan + Bonus - Potongan
+- ✅ **Perhitungan: Gaji Pokok + Tunjangan Jabatan + Multiple Tunjangan + Bonus - Potongan**
 - ✅ **Workflow Status Gaji:** Draft → Approved → Paid
 - ✅ Live preview perhitungan gaji saat edit
 - ✅ Filter dan pencarian data gaji
@@ -142,17 +170,26 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 3. **Absensi Mandiri:** 
    - Klik menu "Absensi Mandiri"
    - Izinkan akses kamera
-   - Klik "Absen Masuk" (pagi) atau "Absen Keluar" (sore)
-   - Foto akan tersimpan otomatis
-4. **Lihat Data:** Akses data absensi dan gaji pribadi
+   - **Sistem akan memvalidasi shift yang ditugaskan**
+   - Klik "Absen Masuk" atau "Absen Keluar" sesuai jam shift
+   - Foto akan tersimpan otomatis dengan validasi waktu
+4. **Lihat Data:** Akses data absensi, gaji, shift, dan tunjangan pribadi
 
 ### Untuk Admin/Bendahara:
 1. **Login** dengan akun admin/bendahara
 2. **Dashboard:** Lihat statistik keseluruhan
 3. **Kelola Guru:** Tambah, edit, lihat data guru (Admin only)
-4. **Kelola Absensi:** Input manual absensi guru
-5. **Kelola Gaji:** Generate dan manage gaji guru
-6. **Lihat Foto Absensi:** Verifikasi foto absensi di detail attendance
+   - Upload foto profil guru
+   - Tetapkan jabatan guru
+   - Atur shift kerja guru
+   - Kelola tunjangan guru
+4. **Kelola Shift:** Buat dan atur jam kerja (Admin only)
+5. **Kelola Jabatan:** Buat dan atur jabatan guru (Admin only)
+6. **Kelola Jenis Tunjangan:** Buat dan atur jenis tunjangan (Admin only)
+7. **Kelola Tunjangan Guru:** Assign tunjangan ke guru (Admin only)
+8. **Kelola Absensi:** Input manual absensi guru dengan validasi shift
+9. **Kelola Gaji:** Generate dan manage gaji guru dengan perhitungan tunjangan
+10. **Lihat Foto Absensi:** Verifikasi foto absensi di detail attendance
 
 ## 🏗️ Struktur Database
 
@@ -164,14 +201,25 @@ YAKIIN Teacher Payment System adalah aplikasi web berbasis Laravel yang dirancan
 
 ### Tabel Utama:
 - **users:** Data pengguna dan role
-- **teachers:** Data detail guru
-- **attendances:** Data absensi dengan foto dan lokasi
+- **teachers:** Data detail guru dengan foto dan jabatan
+- **positions:** Data jabatan dan tunjangan jabatan
+- **shifts:** Data shift/jam kerja
+- **teacher_shifts:** Relasi guru dengan shift (many-to-many)
+- **allowance_types:** Jenis-jenis tunjangan
+- **teacher_allowances:** Tunjangan guru (many-to-many)
+- **attendances:** Data absensi dengan foto, lokasi, dan validasi shift
 - **salaries:** Data gaji dan perhitungan
 
 ### Relasi:
 - User hasOne Teacher
+- Teacher belongsTo Position
+- Teacher belongsToMany Shifts (through teacher_shifts)
+- Teacher hasMany TeacherAllowances
 - Teacher hasMany Attendances
 - Teacher hasMany Salaries
+- Shift belongsToMany Teachers (through teacher_shifts)
+- AllowanceType hasMany TeacherAllowances
+- Position hasMany Teachers
 
 ## 🔧 Teknologi yang Digunakan
 

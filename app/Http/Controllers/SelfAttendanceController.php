@@ -86,8 +86,34 @@ class SelfAttendanceController extends Controller
                 return response()->json(['error' => 'Anda sudah melakukan absen masuk hari ini.'], 400);
             }
 
-            // Determine status based on time
-            $jamMasukStandar = Carbon::createFromTime(7, 0, 0); // 07:00
+            // Determine status based on time and assigned shifts
+            $jamMasukStandar = Carbon::createFromTime(7, 0, 0); // Default: 07:00
+            $activeShift = null;
+
+            // Check if teacher has assigned shifts for today
+            $dayName = strtolower($today->format('l')); // Get day name in English
+            $dayNameIndonesian = [
+                'monday' => 'senin',
+                'tuesday' => 'selasa',
+                'wednesday' => 'rabu',
+                'thursday' => 'kamis',
+                'friday' => 'jumat',
+                'saturday' => 'sabtu',
+                'sunday' => 'minggu'
+            ][$dayName] ?? 'senin';
+
+            if ($teacher->shifts->count() > 0 && $teacher->working_days && in_array($dayNameIndonesian, $teacher->working_days)) {
+                // Find the earliest shift for today
+                $activeShift = $teacher->shifts()
+                    ->where('is_active', true)
+                    ->orderBy('start_time')
+                    ->first();
+
+                if ($activeShift) {
+                    $jamMasukStandar = Carbon::createFromFormat('H:i:s', $activeShift->start_time);
+                }
+            }
+
             $status = $currentTime->format('H:i') <= $jamMasukStandar->format('H:i') ? 'hadir' : 'terlambat';
 
             if ($attendance) {
@@ -97,6 +123,7 @@ class SelfAttendanceController extends Controller
                     'status' => $status,
                     'photo_masuk' => $path,
                     'location' => $request->location,
+                    'shift_id' => $activeShift ? $activeShift->id : null,
                     'keterangan' => $request->location ? 'Lokasi: ' . $request->location : null,
                 ]);
             } else {
@@ -108,6 +135,7 @@ class SelfAttendanceController extends Controller
                     'status' => $status,
                     'photo_masuk' => $path,
                     'location' => $request->location,
+                    'shift_id' => $activeShift ? $activeShift->id : null,
                     'keterangan' => $request->location ? 'Lokasi: ' . $request->location : null,
                 ]);
             }
