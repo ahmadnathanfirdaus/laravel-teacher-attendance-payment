@@ -46,6 +46,7 @@ class AllowanceTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'calculation_type' => 'required|in:per_hari,per_bulan',
             'default_amount' => 'required|numeric|min:0',
         ]);
 
@@ -93,6 +94,7 @@ class AllowanceTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'calculation_type' => 'required|in:per_hari,per_bulan',
             'default_amount' => 'required|numeric|min:0',
         ]);
 

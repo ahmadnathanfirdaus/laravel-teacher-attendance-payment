@@ -182,7 +182,7 @@
                             <div class="mb-3">
                                 <label for="nominal" class="form-label">Nominal Gaji</label>
                                 <input type="number" class="form-control @error('nominal') is-invalid @enderror"
-                                       id="nominal" name="nominal" value="{{ old('nominal', $teacher->nominal ?? $teacher->gaji_pokok) }}" required>
+                                       id="nominal" name="nominal" value="{{ old('nominal', $teacher->nominal) }}" required>
                                 @error('nominal')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

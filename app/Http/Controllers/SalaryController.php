@@ -107,7 +107,7 @@ class SalaryController extends Controller
         $hariTidakHadir = $hariKerja - $hariHadir;
 
         // Calculate salary based on salary type
-        $nominalGaji = $teacher->nominal ?? $teacher->gaji_pokok ?? 0;
+        $nominalGaji = $teacher->nominal ?? 0;
         $salaryType = $teacher->salary_type ?? 'per_bulan';
 
         switch ($salaryType) {
@@ -335,7 +335,7 @@ class SalaryController extends Controller
             $hariTidakHadir = $hariKerja - $hariHadir;
 
             // Calculate salary based on salary type
-            $nominalGaji = $teacher->nominal ?? $teacher->gaji_pokok ?? 0;
+            $nominalGaji = $teacher->nominal ?? 0;
             $salaryType = $teacher->salary_type ?? 'per_bulan';
 
             if ($nominalGaji == 0) {

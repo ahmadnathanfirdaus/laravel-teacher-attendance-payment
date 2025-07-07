@@ -153,7 +153,7 @@
                     </tr>
                     <tr>
                         <td><strong>Nominal Gaji:</strong></td>
-                        <td>Rp {{ number_format($teacher->nominal ?? $teacher->gaji_pokok, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($teacher->nominal, 0, ',', '.') }}</td>
                     </tr>
                     @php
                         $totalPositionAllowance = 0;
@@ -173,7 +173,7 @@
                     </tr>
                     <tr>
                         <td><strong>Total Penghasilan:</strong></td>
-                        <td><strong>Rp {{ number_format(($teacher->nominal ?? $teacher->gaji_pokok) + $totalPositionAllowance + $teacher->teacherAllowances->where('is_active', true)->sum('amount'), 0, ',', '.') }}</strong></td>
+                        <td><strong>Rp {{ number_format(($teacher->nominal) + $totalPositionAllowance + $teacher->teacherAllowances->where('is_active', true)->sum('amount'), 0, ',', '.') }}</strong></td>
                     </tr>
                 </table>
             </div>
