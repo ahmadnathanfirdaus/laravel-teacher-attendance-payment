@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('allowance_types', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Nama jenis tunjangan: "Transportasi", "Makan", "Komunikasi", "Jabatan"
+            $table->string('name'); // Nama jenis tunjangan: "Tunjangan Transportasi", "Tunjangan Kinerja"
             $table->text('description')->nullable(); // Deskripsi jenis tunjangan
             $table->decimal('default_amount', 12, 2)->default(0); // Nominal default
+            $table->enum('calculation_type', ['per_hari', 'per_bulan'])->default('per_hari'); // Tipe perhitungan default
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

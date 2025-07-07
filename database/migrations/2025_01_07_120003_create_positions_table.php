@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('shifts', function (Blueprint $table) {
+        Schema::create('positions', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Nama shift: "Pagi", "Siang", "Sore"
-            $table->time('start_time'); // Jam mulai
-            $table->time('end_time'); // Jam selesai
-            $table->text('description')->nullable(); // Deskripsi shift
+            $table->string('name'); // Nama jabatan: "Kepala Sekolah", "Wakil Kepala Sekolah", "Guru Kelas", etc.
+            $table->text('description')->nullable(); // Deskripsi jabatan
+            $table->decimal('base_allowance', 12, 2)->default(0); // Tunjangan dasar jabatan
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('shifts');
+        Schema::dropIfExists('positions');
     }
 };

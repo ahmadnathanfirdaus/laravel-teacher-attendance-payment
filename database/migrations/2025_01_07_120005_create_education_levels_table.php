@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('education_levels', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // MI, MTs, MA, SMP, SMA, dll
-            $table->string('full_name'); // Madrasah Ibtidaiyah, Madrasah Tsanawiyah, dll
-            $table->text('description')->nullable();
-            $table->integer('level_order')->default(1); // Urutan jenjang (1=MI, 2=MTs, 3=MA, dll)
+            $table->string('name'); // Nama jenjang: "MI", "MTs", "MA", "D3", "S1", "S2", "S3"
+            $table->string('full_name'); // Nama lengkap: "Madrasah Ibtidaiyah", etc.
+            $table->text('description')->nullable(); // Deskripsi jenjang
+            $table->integer('level_order')->default(1); // Urutan level (untuk sorting)
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

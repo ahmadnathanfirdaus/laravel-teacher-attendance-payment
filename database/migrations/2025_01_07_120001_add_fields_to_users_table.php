@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['admin', 'bendahara', 'guru'])->default('guru');
-            $table->boolean('is_active')->default(true);
+            $table->enum('role', ['admin', 'bendahara', 'guru'])->default('guru')->after('password');
+            $table->boolean('is_active')->default(true)->after('role');
+            $table->boolean('password_changed')->default(false)->after('is_active');
+            $table->timestamp('first_login_at')->nullable()->after('password_changed');
         });
     }
 
@@ -23,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['role', 'is_active']);
+            $table->dropColumn(['role', 'is_active', 'password_changed', 'first_login_at']);
         });
     }
 };

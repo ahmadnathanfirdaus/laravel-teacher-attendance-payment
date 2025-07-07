@@ -11,13 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('positions', function (Blueprint $table) {
+        Schema::create('teacher_positions', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Nama jabatan: "Kepala Sekolah", "Wakil Kepala Sekolah", "Guru", "Staff TU"
-            $table->text('description')->nullable(); // Deskripsi jabatan
-            $table->decimal('base_allowance', 12, 2)->default(0); // Tunjangan dasar jabatan
+            $table->foreignId('teacher_id')->constrained()->onDelete('cascade');
+            $table->foreignId('position_id')->constrained()->onDelete('cascade');
             $table->boolean('is_active')->default(true);
+            $table->text('notes')->nullable(); // Catatan terkait penugasan jabatan
             $table->timestamps();
+
+            $table->unique(['teacher_id', 'position_id']);
         });
     }
 
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('positions');
+        Schema::dropIfExists('teacher_positions');
     }
 };
