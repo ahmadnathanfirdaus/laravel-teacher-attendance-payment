@@ -341,5 +341,29 @@ $(document).ready(function() {
         placeholder: 'Pilih shift...'
     });
 });
+
+// Helper function to toggle allowance selection
+function toggleAllAllowances() {
+    const checkboxes = document.querySelectorAll('input[name="allowance_types[]"]');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+    });
+}
+
+// Add a "Select All" button for allowances
+document.addEventListener('DOMContentLoaded', function() {
+    const allowanceContainer = document.querySelector('.form-check-group');
+    if (allowanceContainer) {
+        const selectAllBtn = document.createElement('button');
+        selectAllBtn.type = 'button';
+        selectAllBtn.className = 'btn btn-sm btn-outline-secondary mb-2';
+        selectAllBtn.innerHTML = '<i class="fas fa-check-double me-1"></i>Pilih Semua / Batal Pilih';
+        selectAllBtn.onclick = toggleAllAllowances;
+
+        allowanceContainer.parentNode.insertBefore(selectAllBtn, allowanceContainer);
+    }
+});
 </script>
 @endsection

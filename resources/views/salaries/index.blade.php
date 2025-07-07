@@ -8,13 +8,56 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0">Data Gaji</h1>
             @if(auth()->user()->role !== 'guru')
-                <a href="{{ route('salaries.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>Generate Gaji
-                </a>
+                <div class="btn-group">
+                    <a href="{{ route('salaries.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Generate Gaji
+                    </a>
+                    <a href="{{ route('salaries.bulk-create') }}" class="btn btn-warning">
+                        <i class="fas fa-cogs me-2"></i>Generate Semua Guru
+                    </a>
+                </div>
             @endif
         </div>
     </div>
 </div>
+
+<!-- Quick Stats -->
+@if(auth()->user()->role !== 'guru')
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <div class="h5 mb-1">{{ $salaries->total() }}</div>
+                <div class="text-muted small">Total Gaji</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <div class="h5 mb-1">{{ $salaries->where('bulan', now()->format('F'))->where('tahun', now()->year)->count() }}</div>
+                <div class="text-muted small">Bulan Ini</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <div class="h5 mb-1">{{ \App\Models\Teacher::where('is_active', true)->count() }}</div>
+                <div class="text-muted small">Guru Aktif</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <div class="h5 mb-1">{{ \App\Models\AllowanceType::where('is_active', true)->count() }}</div>
+                <div class="text-muted small">Tunjangan</div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Filter Form -->
 <div class="row mb-4">

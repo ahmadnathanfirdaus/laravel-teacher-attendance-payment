@@ -25,8 +25,6 @@
                     <canvas id="canvas" width="400" height="300" style="display: none;"></canvas>
 
                     <div class="mt-3">
-                        <div id="location-info" class="text-muted mb-3"></div>
-
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-success" id="clock-in-btn"
                                     {{ $todayAttendance && $todayAttendance->jam_masuk ? 'disabled' : '' }}>
@@ -143,7 +141,6 @@
 @push('scripts')
 <script>
 let video, canvas, context;
-let currentLocation = null;
 let resultModal = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -161,9 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize camera
     initCamera();
-
-    // Get location
-    getLocation();
 
     // Update current time
     updateCurrentTime();
@@ -201,25 +195,6 @@ function initCamera() {
     }
 }
 
-function getLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            currentLocation = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
-
-            document.getElementById('location-info').innerHTML =
-                '<i class="fas fa-map-marker-alt me-1"></i>' +
-                'Lokasi: ' + currentLocation.latitude.toFixed(6) + ', ' + currentLocation.longitude.toFixed(6);
-        }, function(error) {
-            document.getElementById('location-info').innerHTML =
-                '<i class="fas fa-exclamation-triangle me-1 text-warning"></i>' +
-                'Lokasi tidak tersedia';
-        });
-    }
-}
-
 function updateCurrentTime() {
     const now = new Date();
     const timeString = now.toLocaleTimeString('id-ID');
@@ -253,7 +228,6 @@ function takeAttendance(type) {
     const data = {
         type: type,
         photo: photoData,
-        location: currentLocation ? `${currentLocation.latitude}, ${currentLocation.longitude}` : null,
         _token: '{{ csrf_token() }}'
     };
 

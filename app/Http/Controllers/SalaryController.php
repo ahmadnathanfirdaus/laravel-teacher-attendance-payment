@@ -225,6 +225,139 @@ class SalaryController extends Controller
     }
 
     /**
+     * Show form for bulk salary generation
+     */
+    public function bulkCreate()
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'guru') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        return view('salaries.bulk-create');
+    }
+
+    /**
+     * Generate salaries for all active teachers
+     */
+    public function bulkStore(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'guru') {
+            abort(403, 'Unauthorized access.');
+        }
+
+        try {
+            $validated = $request->validate([
+                'bulan' => 'required|string',
+                'tahun' => 'required|integer|min:2020|max:2030',
+                'bonus' => 'nullable|numeric|min:0',
+                'potongan' => 'nullable|numeric|min:0',
+                'keterangan' => 'nullable|string',
+            ]);
+
+            $monthMapping = [
+                'January' => 1, 'February' => 2, 'March' => 3, 'April' => 4,
+                'May' => 5, 'June' => 6, 'July' => 7, 'August' => 8,
+                'September' => 9, 'October' => 10, 'November' => 11, 'December' => 12
+            ];
+
+            $monthNumber = is_numeric($validated['bulan'])
+                ? (int) $validated['bulan']
+                : ($monthMapping[$validated['bulan']] ?? 1);
+
+            $startDate = Carbon::create($validated['tahun'], $monthNumber, 1);
+            $endDate = $startDate->copy()->endOfMonth();
+
+            $teachers = Teacher::where('is_active', true)->get();
+            $successCount = 0;
+            $skippedCount = 0;
+
+            foreach ($teachers as $teacher) {
+                // Check if salary already exists for this month/year
+                $existingSalary = Salary::where('teacher_id', $teacher->id)
+                                       ->where('bulan', $validated['bulan'])
+                                   ->where('tahun', $validated['tahun'])
+                                   ->first();
+
+            if ($existingSalary) {
+                $skippedCount++;
+                continue;
+            }
+
+            // Calculate working days and attendance
+            $hariKerja = $this->calculateWorkingDays($startDate, $endDate);
+            $hariHadir = Attendance::where('teacher_id', $teacher->id)
+                                 ->whereBetween('tanggal', [$startDate, $endDate])
+                                 ->where('status', 'hadir')
+                                 ->count();
+            $hariTidakHadir = $hariKerja - $hariHadir;
+
+            // Calculate salary
+            $gajiPokok = 0;
+            if ($teacher->position && $teacher->position->base_salary > 0) {
+                $gajiPokok = $teacher->position->base_salary;
+            } elseif ($teacher->gaji_pokok > 0) {
+                $gajiPokok = $teacher->gaji_pokok;
+            }
+
+            if ($gajiPokok == 0) {
+                // If no salary is set, skip this teacher
+                $skippedCount++;
+                continue;
+            }
+
+            $gajiHarian = $gajiPokok / $hariKerja;
+            $totalGajiPokok = $gajiHarian * $hariHadir;
+
+            // Calculate total allowances
+            $totalTunjangan = $teacher->teacherAllowances()
+                                     ->where('is_active', true)
+                                     ->where('effective_date', '<=', Carbon::create($validated['tahun'], $monthNumber, 1))
+                                     ->sum('amount');
+
+            if ($totalTunjangan == 0) {
+                $totalTunjangan = $teacher->tunjangan ?? 0;
+            }
+
+            $totalGaji = $totalGajiPokok + $totalTunjangan + ($validated['bonus'] ?? 0) - ($validated['potongan'] ?? 0);
+
+            // Create salary record
+            Salary::create([
+                'teacher_id' => $teacher->id,
+                'bulan' => $validated['bulan'],
+                'tahun' => $validated['tahun'],
+                'gaji_pokok' => $gajiPokok,
+                'tunjangan' => $totalTunjangan,
+                'bonus' => $validated['bonus'] ?? 0,
+                'potongan' => $validated['potongan'] ?? 0,
+                'hari_kerja' => $hariKerja,
+                'hari_hadir' => $hariHadir,
+                'hari_tidak_hadir' => $hariTidakHadir,
+                'total_gaji' => $totalGaji,
+                'status' => 'draft',
+                'keterangan' => $validated['keterangan'],
+            ]);
+
+            $successCount++;
+        }        $message = "Berhasil generate gaji untuk {$successCount} guru.";
+        if ($skippedCount > 0) {
+            $message .= " {$skippedCount} guru dilewati karena sudah ada data gaji untuk periode tersebut.";
+        }
+
+        return redirect()->route('salaries.index')->with('success', $message);
+
+        } catch (\Exception $e) {
+            // Handle any exceptions
+            $errorMessage = 'Terjadi kesalahan saat memproses generate gaji: ' . $e->getMessage();
+
+            return redirect()->route('salaries.bulk-create')->with('error', $errorMessage);
+        }
+    }
+
+    /**
      * Calculate working days between two dates (excluding weekends)
      */
     private function calculateWorkingDays($startDate, $endDate)

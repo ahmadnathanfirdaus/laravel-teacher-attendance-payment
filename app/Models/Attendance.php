@@ -15,7 +15,6 @@ class Attendance extends Model
         'keterangan',
         'photo_masuk',
         'photo_keluar',
-        'location',
         'shift_id',
         'expected_time_in',
         'expected_time_out',

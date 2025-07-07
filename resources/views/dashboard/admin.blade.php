@@ -60,6 +60,52 @@
 </div>
 
 <div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title">Jenjang Pendidikan</h5>
+                        <h2 class="mb-0">{{ $totalEducationLevels }}</h2>
+                        <small>level tersedia</small>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-graduation-cap fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ route('education-levels.index') }}" class="text-white text-decoration-none">
+                        <small><i class="fas fa-external-link-alt me-1"></i>Kelola Jenjang</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h5 class="card-title">Jenis Tunjangan</h5>
+                        <h2 class="mb-0">{{ $totalAllowanceTypes }}</h2>
+                        <small>tunjangan tersedia</small>
+                    </div>
+                    <div class="ms-3">
+                        <i class="fas fa-hand-holding-usd fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <a href="{{ route('allowance-types.index') }}" class="text-white text-decoration-none">
+                        <small><i class="fas fa-external-link-alt me-1"></i>Kelola Tunjangan</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-12">
         <div class="card">
             <div class="card-header">

@@ -66,11 +66,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Salary routes
     Route::resource('salaries', SalaryController::class);
+    Route::get('/salaries-bulk/create', [SalaryController::class, 'bulkCreate'])->name('salaries.bulk-create');
+    Route::post('/salaries-bulk', [SalaryController::class, 'bulkStore'])->name('salaries.bulk-store');
 
     // Self Attendance routes (for teachers only)
     Route::middleware(['role:guru'])->group(function () {
         Route::get('/self-attendance', [SelfAttendanceController::class, 'index'])->name('self-attendance.index');
         Route::post('/self-attendance', [SelfAttendanceController::class, 'store'])->name('self-attendance.store');
-        Route::post('/self-attendance/location', [SelfAttendanceController::class, 'getLocation'])->name('self-attendance.location');
     });
 });

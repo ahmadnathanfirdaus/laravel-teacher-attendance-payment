@@ -58,7 +58,6 @@ class SelfAttendanceController extends Controller
         $request->validate([
             'type' => 'required|in:masuk,keluar',
             'photo' => 'required|string', // Base64 encoded image
-            'location' => 'nullable|string',
         ]);
 
         $today = today();
@@ -122,9 +121,7 @@ class SelfAttendanceController extends Controller
                     'jam_masuk' => $currentTime->format('H:i'),
                     'status' => $status,
                     'photo_masuk' => $path,
-                    'location' => $request->location,
                     'shift_id' => $activeShift ? $activeShift->id : null,
-                    'keterangan' => $request->location ? 'Lokasi: ' . $request->location : null,
                 ]);
             } else {
                 // Create new record
@@ -134,9 +131,7 @@ class SelfAttendanceController extends Controller
                     'jam_masuk' => $currentTime->format('H:i'),
                     'status' => $status,
                     'photo_masuk' => $path,
-                    'location' => $request->location,
                     'shift_id' => $activeShift ? $activeShift->id : null,
-                    'keterangan' => $request->location ? 'Lokasi: ' . $request->location : null,
                 ]);
             }
 
@@ -173,14 +168,4 @@ class SelfAttendanceController extends Controller
     /**
      * Get current location
      */
-    public function getLocation(Request $request)
-    {
-        // This would typically integrate with a mapping service
-        // For now, we'll just return the coordinates
-        return response()->json([
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'address' => 'Koordinat: ' . $request->latitude . ', ' . $request->longitude
-        ]);
-    }
 }

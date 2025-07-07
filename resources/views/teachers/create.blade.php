@@ -303,13 +303,43 @@
 
                     <div class="d-flex justify-content-end">
                         <a href="{{ route('teachers.index') }}" class="btn btn-secondary me-2">Batal</a>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Simpan Guru
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+// Helper function to toggle allowance selection
+function toggleAllAllowances() {
+    const checkboxes = document.querySelectorAll('input[name="allowance_types[]"]');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+    checkboxes.forEach(cb => {
+        cb.checked = !allChecked;
+    });
+}
+
+// Add a "Select All" button for allowances
+document.addEventListener('DOMContentLoaded', function() {
+    const allowanceContainer = document.querySelector('.form-check-group');
+    if (allowanceContainer) {
+        const selectAllBtn = document.createElement('button');
+        selectAllBtn.type = 'button';
+        selectAllBtn.className = 'btn btn-sm btn-outline-secondary mb-2';
+        selectAllBtn.innerHTML = '<i class="fas fa-check-double me-1"></i>Pilih Semua / Batal Pilih';
+        selectAllBtn.onclick = toggleAllAllowances;
+
+        allowanceContainer.parentNode.insertBefore(selectAllBtn, allowanceContainer);
+    }
+});
+</script>
+@endpush
 @endsection
 
 @section('styles')

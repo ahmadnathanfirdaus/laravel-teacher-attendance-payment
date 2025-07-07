@@ -6,6 +6,8 @@ use App\Models\Teacher;
 use App\Models\Attendance;
 use App\Models\Salary;
 use App\Models\User;
+use App\Models\EducationLevel;
+use App\Models\AllowanceType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -31,6 +33,8 @@ class DashboardController extends Controller
         $totalSalariesThisMonth = Salary::where('bulan', now()->format('F'))
                                        ->where('tahun', now()->year)
                                        ->count();
+        $totalEducationLevels = EducationLevel::where('is_active', true)->count();
+        $totalAllowanceTypes = AllowanceType::where('is_active', true)->count();
 
         $recentAttendances = Attendance::with('teacher')
                                      ->whereDate('tanggal', today())
@@ -42,6 +46,8 @@ class DashboardController extends Controller
             'totalTeachers',
             'totalAttendanceToday',
             'totalSalariesThisMonth',
+            'totalEducationLevels',
+            'totalAllowanceTypes',
             'recentAttendances'
         ));
     }
